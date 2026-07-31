@@ -1,18 +1,44 @@
 # Mass Deconstructor Safe Filter
 
-Companion safety filter for Mass Deconstructor 7.2.
+Дополнительный защитный фильтр для **Mass Deconstructor 7.2**, предотвращающий случайный массовый разбор редких и особых предметов в The Elder Scrolls Online.
 
-Default exclusions:
+## Что защищает аддон
 
-- mythic (orange) items, such as the Ring of the Pale Order;
-- monster sets, including Imperial City and Cyrodiil monster sets;
-- weapons and shields from one/two-piece arena sets.
+По умолчанию из очереди Mass Deconstructor исключаются:
 
-Gold legendary items are intentionally not protected by the quality filter.
+- мифические предметы оранжевого качества, например **Кольцо Бледного ордена**;
+- части монстр-сетов, включая наборы Имперского города и Сиродила;
+- оружие и щиты особых комплектов арен, бонус которых рассчитан на один или два надетых предмета.
 
-The addon does not place permanent ESO or FCO ItemSaver locks. It intercepts only the
-queue construction and the batch submitted by Mass Deconstructor, and removes protected
-items from its legacy queue. Protected items are also omitted from the initial verbose list.
+Обычные золотые предметы легендарного качества специально **не защищаются** только на основании их качества. Если золотой предмет относится к монстр-сету или защищаемому комплекту арены, он всё равно будет исключён.
 
-After installing or updating, restart ESO or run `/reloadui`. Settings are available under
-**Settings -> Addons -> Mass Deconstructor Safe Filter**. `/mdsf status` prints active state.
+## Как работает защита
+
+Аддон не изменяет файлы Mass Deconstructor и не устанавливает постоянные игровые блокировки или метки FCO ItemSaver. Фильтр действует только во время формирования списка и отправки пакета на массовый разбор. Защищённые предметы также не должны появляться в предварительном списке Mass Deconstructor.
+
+## Установка
+
+1. Установите и включите **Mass Deconstructor** и библиотеку **LibSets**.
+2. Скопируйте папку `MassDeconstructorSafeFilter` в:
+
+   ```text
+   Documents/Elder Scrolls Online/live/AddOns
+   ```
+
+3. Включите **Mass Deconstructor Safe Filter** в меню модификаций ESO.
+4. Выполните `/reloadui` или перезапустите игру.
+
+## Настройки и проверка
+
+Параметры находятся в меню **Настройки → Дополнения → Mass Deconstructor Safe Filter**. Там можно отдельно включать и отключать защиту мифических предметов, монстр-сетов и оружия арен.
+
+Команда `/mdsf status` выводит текущее состояние фильтра в игровой чат.
+
+Перед первым массовым разбором после установки рекомендуется внимательно проверить предварительный список предметов.
+
+## Совместимость
+
+- Mass Deconstructor: `7.2`
+- Версия фильтра: `1.1.0`
+- ESO API: `101050`, `101051`
+- Обязательная библиотека: `LibSets`
