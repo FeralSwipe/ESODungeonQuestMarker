@@ -1,0 +1,10 @@
+## Title: Mass Deconstructor Safe Filter
+## Description: Protects mythic items, monster sets, and 1-2 piece arena weapons from Mass Deconstructor.
+## Author: Codex for @FeralSwipe
+## Version: 1.1.0
+## AddOnVersion: 10100
+## APIVersion: 101050 101051
+## SavedVariables: MassDeconstructorSafeFilterSavedVars
+## DependsOn: MassDeconstructor LibSets
+
+MassDeconstructorSafeFilter.lua
