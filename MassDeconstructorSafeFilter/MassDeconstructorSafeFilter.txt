@@ -1,8 +1,8 @@
 ## Title: Mass Deconstructor Safe Filter
-## Description: Protects mythic items, monster sets, and 1-2 piece arena weapons from Mass Deconstructor.
+## Description: Protects mythic and legendary items, monster sets, and 1-2 piece arena weapons from Mass Deconstructor. Localized automatically.
 ## Author: Codex for @FeralSwipe
-## Version: 1.1.0
-## AddOnVersion: 10100
+## Version: 1.2.0
+## AddOnVersion: 10200
 ## APIVersion: 101050 101051
 ## SavedVariables: MassDeconstructorSafeFilterSavedVars
 ## DependsOn: MassDeconstructor LibSets
