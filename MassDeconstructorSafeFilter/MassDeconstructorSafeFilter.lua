@@ -3,7 +3,7 @@ MDSafeFilter = MDSafeFilter or {}
 local SF = MDSafeFilter
 SF.name = "MassDeconstructorSafeFilter"
 SF.displayName = "Mass Deconstructor Safe Filter"
-SF.version = "1.2.0"
+SF.version = "1.4.0"
 
 local SET_TYPE_ARENA = LIBSETS_SETTYPE_ARENA or 1
 local SET_TYPE_MONSTER = LIBSETS_SETTYPE_MONSTER or 8
@@ -12,11 +12,245 @@ local SET_TYPE_CYRODIIL_MONSTER = LIBSETS_SETTYPE_CYRODIIL_MONSTER or 14
 local QUALITY_LEGENDARY = ITEM_DISPLAY_QUALITY_LEGENDARY or 5
 local QUALITY_MYTHIC = ITEM_DISPLAY_QUALITY_MYTHIC_OVERRIDE or 6
 
+-- Recommended U50 PvE/PvP collection. Names are documentation only; item
+-- matching always uses the stable numeric setId returned by LibSets.
+-- Both normal and Perfected variants are included where ESO uses separate IDs.
+local currentMetaSetIds = {
+    [29] = "Sergeant's Mail",
+    [66] = "Robes of the Hist", -- commonly called "Hist Sap" by players
+    [107] = "Wyrd Tree's Blessing",
+    [127] = "Deadly Strike",
+    [133] = "Buffer of the Swift",
+    [147] = "Way of Martial Knowledge",
+    [163] = "Bloodspawn",
+    [164] = "Lord Warden",
+    [180] = "Powerful Assault",
+    [185] = "Spell Power Cure",
+    [188] = "Storm Master",
+    [198] = "Essence Thief",
+    [208] = "Trial by Fire",
+    [210] = "Mark of the Pariah",
+    [235] = "Robes of Transmutation",
+    [236] = "Vicious Death",
+    [270] = "Slimecraw",
+    [276] = "Tremorscale",
+    [281] = "Armor of the Trainee",
+    [314] = "Puncturing Remedy",
+    [315] = "Stinging Slashes",
+    [316] = "Caustic Arrow",
+    [318] = "Grand Rejuvenation",
+    [324] = "Daedric Trickery",
+    [331] = "War Machine",
+    [332] = "Master Architect",
+    [336] = "Pillar of Nirn",
+    [346] = "Jorvuld's Guidance",
+    [353] = "Mechanical Acuity",
+    [369] = "Merciless Charge",
+    [373] = "Crushing Wall",
+    [389] = "Arms of Relequen",
+    [391] = "Vestment of Olorime",
+    [393] = "Perfected Arms of Relequen",
+    [395] = "Perfected Vestment of Olorime",
+    [397] = "Balorgh",
+    [403] = "Savage Werewolf",
+    [413] = "Spectral Cloak",
+    [414] = "Virulent Shot",
+    [416] = "Mender's Ward",
+    [425] = "Perfected Spectral Cloak",
+    [426] = "Perfected Virulent Shot",
+    [428] = "Perfected Mender's Ward",
+    [436] = "Symphony of Blades",
+    [455] = "Z'en's Redress",
+    [456] = "Azureblight Reaper",
+    [459] = "Maarselok",
+    [474] = "Draugrkin's Grip",
+    [475] = "Aegis Caller",
+    [479] = "Kjalnar's Nightmare",
+    [491] = "Dragon's Appetite",
+    [496] = "Roaring Opportunist",
+    [497] = "Perfected Roaring Opportunist",
+    [503] = "Ring of the Wild Hunt",
+    [516] = "Elemental Catalyst",
+    [522] = "Perfected Merciless Charge",
+    [526] = "Perfected Crushing Wall",
+    [529] = "Perfected Puncturing Remedy",
+    [530] = "Perfected Stinging Slashes",
+    [531] = "Perfected Caustic Arrow",
+    [533] = "Perfected Grand Rejuvenation",
+    [557] = "Executioner's Blade",
+    [563] = "Perfected Executioner's Blade",
+    [575] = "Ring of the Pale Order",
+    [576] = "Pearls of Ehlnofey",
+    [577] = "Encratis's Behemoth",
+    [585] = "Saxhleel Champion",
+    [586] = "Sul-Xan's Torment",
+    [589] = "Perfected Saxhleel Champion",
+    [590] = "Perfected Sul-Xan's Torment",
+    [593] = "Gaze of Sithis",
+    [594] = "Harpooner's Wading Kilt",
+    [596] = "Death Dealer's Fete",
+    [602] = "Crimson Oath's Rive",
+    [604] = "Rush of Agony",
+    [609] = "Magma Incarnate",
+    [610] = "Wretched Vitality",
+    [616] = "Dark Convergence",
+    [617] = "Plaguebreak",
+    [622] = "Turning Tide",
+    [625] = "Markyn Ring of Majesty",
+    [627] = "Spaulder of Ruin",
+    [629] = "Rallying Cry",
+    [633] = "Nazaray",
+    [634] = "Nunatak",
+    [641] = "Serpent's Disdain",
+    [646] = "Whorl of the Depths",
+    [647] = "Coral Riptide",
+    [648] = "Pearlescent Ward",
+    [649] = "Pillager's Profit",
+    [650] = "Perfected Pillager's Profit",
+    [651] = "Perfected Pearlescent Ward",
+    [652] = "Perfected Coral Riptide",
+    [653] = "Perfected Whorl of the Depths",
+    [654] = "Mora's Whispers",
+    [657] = "Sea-Serpent's Coil",
+    [658] = "Oakensoul Ring",
+    [666] = "Archdruid Devyric",
+    [676] = "Syrabane's Ward",
+    [683] = "Roksa the Warped",
+    [684] = "Runecarver's Blaze",
+    [687] = "Ozezan the Inferno",
+    [691] = "Cryptcanon Vestments",
+    [694] = "Velothi Ur-Mage's Amulet",
+    [702] = "Ansuul's Torment",
+    [707] = "Perfected Ansuul's Torment",
+    [736] = "Tarnished Nightmare",
+    [738] = "The Blind",
+    [754] = "Oakfather's Retribution",
+    [762] = "The Saint and the Seducer",
+    [767] = "Slivers of the Null Arca",
+    [768] = "Lucent Echoes",
+    [769] = "Xoryn's Masterpiece",
+    [770] = "Perfected Xoryn's Masterpiece",
+    [771] = "Perfected Lucent Echoes",
+    [772] = "Perfected Slivers of the Null Arca",
+    [775] = "Spattering Disjunction",
+    [776] = "Pyrebrand",
+    [777] = "Corpseburster",
+    [781] = "Aerie's Cry",
+    [792] = "Farstrider",
+    [813] = "Monomyth Reforged",
+    [848] = "Shattered Paths Signet",
+    [850] = "Thousand Eyes",
+    [855] = "Gorethief",
+}
+
+-- Sets from the older Alcast tank/healer/magicka/stamina guides that are not
+-- part of the current U50 collection above. The tables are intentionally
+-- disjoint so one item can match only one meta category.
+local legacyMetaSetIds = {
+    [21] = "Akaviri Dragonguard",
+    [39] = "Alessian Order",
+    [50] = "The Morag Tong",
+    [75] = "Torug's Pact",
+    [80] = "Hunding's Rage",
+    [92] = "Kagrenac's Hope",
+    [98] = "Necropotence",
+    [110] = "Sanctuary",
+    [122] = "Ebon Armory",
+    [123] = "Hircine's Veneer",
+    [124] = "The Worm's Raiment",
+    [137] = "Berserking Warrior",
+    [141] = "Healing Mage",
+    [144] = "Twice-Fanged Serpent",
+    [160] = "Burning Spellweave",
+    [167] = "Nightflame",
+    [168] = "Nerien'eth",
+    [169] = "Valkyn Skoria",
+    [170] = "Maw of the Infernal",
+    [171] = "Eternal Warrior",
+    [173] = "Vicious Serpent",
+    [184] = "Brands of Imperium",
+    [190] = "Scathing Mage",
+    [196] = "Leeching Plate",
+    [207] = "Law of Julianos",
+    [212] = "Briarheart",
+    [215] = "Elemental Succession",
+    [231] = "Lunar Bastion",
+    [232] = "Roar of Alkosh",
+    [256] = "Mighty Chudan",
+    [257] = "Velidreth",
+    [266] = "Kra'gh",
+    [267] = "Swarm Mother",
+    [268] = "Sentinel of Rkugamz",
+    [269] = "Chokethorn",
+    [273] = "Ilambris",
+    [274] = "Iceheart",
+    [275] = "Stormfist",
+    [278] = "The Troll King",
+    [279] = "Selene",
+    [280] = "Grothdarr",
+    [288] = "Beekeeper's Gear",
+    [289] = "Spinner's Garments",
+    [292] = "Mother's Sorrow",
+    [293] = "Plague Doctor",
+    [301] = "Strength of the Automaton",
+    [302] = "Leviathan",
+    [304] = "Medusa",
+    [317] = "Destructive Impact",
+    [341] = "Earthgore",
+    [342] = "Domihaus",
+    [350] = "Zaan",
+    [361] = "Perfected Concentrated Force",
+    [362] = "Perfected Timeless Blessing",
+    [367] = "Concentrated Force",
+    [368] = "Timeless Blessing",
+    [372] = "Thunderous Volley",
+    [390] = "Mantle of Siroria",
+    [394] = "Perfected Mantle of Siroria",
+    [418] = "Spell Strategist",
+    [422] = "Battalion Defender",
+    [430] = "Tzogvin's Warband",
+    [444] = "False God's Devotion",
+    [445] = "Tooth of Lokkestiiz",
+    [446] = "Claw of Yolnahkriin",
+    [449] = "Perfected False God's Devotion",
+    [450] = "Perfected Tooth of Lokkestiiz",
+    [451] = "Perfected Claw of Yolnahkriin",
+    [452] = "Hollowfang Thirst",
+    [470] = "New Moon Acolyte",
+    [471] = "Hiti's Hearth",
+    [487] = "Winter's Respite",
+    [505] = "Torc of Tonal Constancy",
+    [521] = "Bloodlord's Embrace",
+    [525] = "Perfected Thunderous Volley",
+    [532] = "Perfected Destructive Impact",
+    [562] = "Force Overflow",
+    [568] = "Perfected Force Overflow",
+    [570] = "Kinras's Wrath",
+    [571] = "Drake's Rush",
+    [574] = "Foolkiller's Ward",
+    [584] = "Diamond's Victory",
+    [587] = "Bahsei's Mania",
+    [588] = "Stone-Talker's Oath",
+    [591] = "Perfected Bahsei's Mania",
+    [592] = "Perfected Stone-Talker's Oath",
+    [603] = "Scorion's Feast",
+    [661] = "Stone's Accord",
+    [662] = "Rage of the Ursauk",
+    [664] = "Grave Inevitability",
+    [704] = "Transformative Hope",
+    [705] = "Perfected Transformative Hope",
+    [759] = "Ayleid Refuge",
+    [760] = "Rourken Steamguards",
+    [795] = "Jerensi's Bladestorm",
+}
+
 local defaults = {
     protectMythic = true,
     protectLegendary = true,
     protectMonsterSets = true,
     protectArenaWeapons = true,
+    protectRecommendedU50Sets = true,
+    protectLegacyMetaSets = true,
     showSummary = true,
 }
 
@@ -31,12 +265,16 @@ local translations = {
         protectMonsterTip = "Exclude dungeon, Imperial City, and Cyrodiil monster-set pieces.",
         protectArena = "Protect arena weapons",
         protectArenaTip = "Exclude weapons and shields from arena sets whose maximum bonus requires one or two equipped pieces.",
+        protectRecommended = "Protect current meta sets",
+        protectRecommendedTip = "Exclude the current U50 PvE/PvP collection by stable setId, including normal and Perfected variants.",
+        protectLegacy = "Protect legacy meta sets",
+        protectLegacyTip = "Exclude additional sets from the older Alcast tank, healer, Magicka DPS, and Stamina DPS guides.",
         showSummary = "Show exclusion summary in chat",
         hookMissing = "Mass Deconstructor was not found; protection hook was not installed.",
-        summary = "Excluded %d item(s): mythic %d, legendary %d, monster sets %d, arena weapons %d.",
+        summary = "Excluded %d item(s): mythic %d, legendary %d, monster sets %d, arena weapons %d, current meta %d, legacy meta %d.",
         deconstructError = "Mass Deconstructor error: ",
         listError = "Mass Deconstructor list error: ",
-        status = "mythic=%s, legendary=%s, monster=%s, arena=%s, hook=%s, language=%s",
+        status = "mythic=%s, legendary=%s, monster=%s, arena=%s, current=%s, legacy=%s, hook=%s, language=%s",
     },
     de = {
         description = "Zusätzliche Schutzausnahmen nur für Mass Deconstructor. Manuelles Zerlegen und Gegenstandssperren werden nicht verändert.",
@@ -48,12 +286,16 @@ local translations = {
         protectMonsterTip = "Schließt Teile von Monstersets aus Verliesen, der Kaiserstadt und Cyrodiil aus.",
         protectArena = "Arenawaffen schützen",
         protectArenaTip = "Schließt Waffen und Schilde aus Arenasets aus, deren maximaler Bonus ein oder zwei ausgerüstete Teile benötigt.",
+        protectRecommended = "Aktuelle Meta-Sets schützen",
+        protectRecommendedTip = "Schließt die aktuelle U50-PvE/PvP-Sammlung anhand stabiler setIds ein, einschließlich normaler und perfektionierter Varianten.",
+        protectLegacy = "Frühere Meta-Sets schützen",
+        protectLegacyTip = "Schließt zusätzliche Sets aus älteren Alcast-Guides für Tanks, Heiler, Magicka-DPS und Stamina-DPS aus.",
         showSummary = "Zusammenfassung der Ausschlüsse im Chat anzeigen",
         hookMissing = "Mass Deconstructor wurde nicht gefunden; der Schutz konnte nicht aktiviert werden.",
-        summary = "%d Gegenstand/Gegenstände ausgeschlossen: mythisch %d, legendär %d, Monstersets %d, Arenawaffen %d.",
+        summary = "%d Gegenstand/Gegenstände ausgeschlossen: mythisch %d, legendär %d, Monstersets %d, Arenawaffen %d, aktuelle Meta %d, frühere Meta %d.",
         deconstructError = "Fehler in Mass Deconstructor: ",
         listError = "Fehler in der Mass-Deconstructor-Liste: ",
-        status = "mythisch=%s, legendär=%s, monster=%s, arena=%s, schutz=%s, sprache=%s",
+        status = "mythisch=%s, legendär=%s, monster=%s, arena=%s, aktuell=%s, früher=%s, schutz=%s, sprache=%s",
     },
     fr = {
         description = "Exclusions de sécurité supplémentaires appliquées uniquement à Mass Deconstructor. Le démontage manuel et les verrous d'objets ne sont pas modifiés.",
@@ -65,12 +307,16 @@ local translations = {
         protectMonsterTip = "Exclut les pièces d'ensembles de monstre des donjons, de la Cité impériale et de Cyrodiil.",
         protectArena = "Protéger les armes d'arène",
         protectArenaTip = "Exclut les armes et boucliers des ensembles d'arène dont le bonus maximal demande une ou deux pièces équipées.",
+        protectRecommended = "Protéger les ensembles méta actuels",
+        protectRecommendedTip = "Exclut la collection JcE/JcJ U50 actuelle via des setId stables, y compris les variantes normales et perfectionnées.",
+        protectLegacy = "Protéger les anciens ensembles méta",
+        protectLegacyTip = "Exclut les ensembles supplémentaires des anciens guides Alcast pour tank, soigneur, DPS Magie et DPS Vigueur.",
         showSummary = "Afficher le résumé des exclusions dans le chat",
         hookMissing = "Mass Deconstructor est introuvable ; la protection n'a pas été installée.",
-        summary = "%d objet(s) exclu(s) : mythiques %d, légendaires %d, ensembles de monstre %d, armes d'arène %d.",
+        summary = "%d objet(s) exclu(s) : mythiques %d, légendaires %d, ensembles de monstre %d, armes d'arène %d, méta actuelle %d, ancienne méta %d.",
         deconstructError = "Erreur Mass Deconstructor : ",
         listError = "Erreur de liste Mass Deconstructor : ",
-        status = "mythique=%s, légendaire=%s, monstre=%s, arène=%s, protection=%s, langue=%s",
+        status = "mythique=%s, légendaire=%s, monstre=%s, arène=%s, actuel=%s, ancien=%s, protection=%s, langue=%s",
     },
     ru = {
         description = "Дополнительные защитные исключения только для Mass Deconstructor. Ручной разбор и блокировки предметов не изменяются.",
@@ -82,12 +328,16 @@ local translations = {
         protectMonsterTip = "Исключать части монстр-сетов из подземелий, Имперского города и Сиродила.",
         protectArena = "Защищать оружие арен",
         protectArenaTip = "Исключать оружие и щиты комплектов арен, максимальный бонус которых требует один или два надетых предмета.",
+        protectRecommended = "Защищать актуальные метовые сеты",
+        protectRecommendedTip = "Исключать актуальную U50-коллекцию PvE/PvP по устойчивым setId, включая обычные и совершенные варианты.",
+        protectLegacy = "Защищать устаревшие метовые сеты",
+        protectLegacyTip = "Исключать дополнительные сеты из старых гайдов Alcast для танка, хила, Magicka DPS и Stamina DPS.",
         showSummary = "Показывать итог исключений в чате",
         hookMissing = "Mass Deconstructor не найден; защитный перехватчик не установлен.",
-        summary = "Исключено предметов: %d. Мифические: %d, легендарные: %d, монстр-сеты: %d, оружие арен: %d.",
+        summary = "Исключено предметов: %d. Мифические: %d, легендарные: %d, монстр-сеты: %d, оружие арен: %d, актуальная мета: %d, устаревшая мета: %d.",
         deconstructError = "Ошибка Mass Deconstructor: ",
         listError = "Ошибка списка Mass Deconstructor: ",
-        status = "мифические=%s, легендарные=%s, монстр-сеты=%s, арены=%s, защита=%s, язык=%s",
+        status = "мифические=%s, легендарные=%s, монстр-сеты=%s, арены=%s, актуальные=%s, устаревшие=%s, защита=%s, язык=%s",
     },
     es = {
         description = "Exclusiones de seguridad adicionales aplicadas solo a Mass Deconstructor. El desguace manual y los bloqueos de objetos no cambian.",
@@ -99,12 +349,16 @@ local translations = {
         protectMonsterTip = "Excluye piezas de conjuntos de monstruo de mazmorras, la Ciudad Imperial y Cyrodiil.",
         protectArena = "Proteger armas de arena",
         protectArenaTip = "Excluye armas y escudos de conjuntos de arena cuya bonificación máxima requiere una o dos piezas equipadas.",
+        protectRecommended = "Proteger conjuntos meta actuales",
+        protectRecommendedTip = "Excluye la colección JcE/JcJ U50 actual mediante setId estables, incluidas las variantes normales y perfeccionadas.",
+        protectLegacy = "Proteger conjuntos meta antiguos",
+        protectLegacyTip = "Excluye conjuntos adicionales de las guías antiguas de Alcast para tanque, sanador, DPS de magia y DPS de aguante.",
         showSummary = "Mostrar resumen de exclusiones en el chat",
         hookMissing = "No se encontró Mass Deconstructor; no se instaló la protección.",
-        summary = "%d objeto(s) excluido(s): míticos %d, legendarios %d, conjuntos de monstruo %d, armas de arena %d.",
+        summary = "%d objeto(s) excluido(s): míticos %d, legendarios %d, conjuntos de monstruo %d, armas de arena %d, meta actual %d, meta antigua %d.",
         deconstructError = "Error de Mass Deconstructor: ",
         listError = "Error de lista de Mass Deconstructor: ",
-        status = "mítico=%s, legendario=%s, monstruo=%s, arena=%s, protección=%s, idioma=%s",
+        status = "mítico=%s, legendario=%s, monstruo=%s, arena=%s, actual=%s, antiguo=%s, protección=%s, idioma=%s",
     },
     zh = {
         description = "仅对 Mass Deconstructor 应用额外的安全排除，不会更改手动分解或物品锁定。",
@@ -116,12 +370,16 @@ local translations = {
         protectMonsterTip = "排除地下城、帝都和西罗帝尔的怪物套装部件。",
         protectArena = "保护竞技场武器",
         protectArenaTip = "排除最大套装加成只需装备一件或两件的竞技场武器和盾牌。",
+        protectRecommended = "保护当前主流套装",
+        protectRecommendedTip = "通过稳定的 setId 排除当前 U50 PvE/PvP 套装，包括普通和完美版本。",
+        protectLegacy = "保护旧版主流套装",
+        protectLegacyTip = "排除旧版 Alcast 坦克、治疗、魔法 DPS 和耐力 DPS 指南中的其他套装。",
         showSummary = "在聊天中显示排除摘要",
         hookMissing = "未找到 Mass Deconstructor；未安装保护挂钩。",
-        summary = "已排除 %d 件物品：神话 %d，传奇 %d，怪物套装 %d，竞技场武器 %d。",
+        summary = "已排除 %d 件物品：神话 %d，传奇 %d，怪物套装 %d，竞技场武器 %d，当前主流 %d，旧版主流 %d。",
         deconstructError = "Mass Deconstructor 错误：",
         listError = "Mass Deconstructor 列表错误：",
-        status = "神话=%s，传奇=%s，怪物套装=%s，竞技场=%s，保护=%s，语言=%s",
+        status = "神话=%s，传奇=%s，怪物套装=%s，竞技场=%s，当前=%s，旧版=%s，保护=%s，语言=%s",
     },
     jp = {
         description = "Mass Deconstructor にのみ追加の安全除外を適用します。手動解体やアイテムロックは変更しません。",
@@ -133,12 +391,16 @@ local translations = {
         protectMonsterTip = "ダンジョン、帝都、シロディールのモンスターセット部位を除外します。",
         protectArena = "アリーナ武器を保護",
         protectArenaTip = "最大ボーナスに装備数1～2個を必要とするアリーナセットの武器と盾を除外します。",
+        protectRecommended = "現在のメタセットを保護",
+        protectRecommendedTip = "通常版と完全版を含む現在のU50 PvE/PvPセットを、安定したsetIdで除外します。",
+        protectLegacy = "旧メタセットを保護",
+        protectLegacyTip = "旧Alcastのタンク、ヒーラー、Magicka DPS、Stamina DPSガイドの追加セットを除外します。",
         showSummary = "除外結果をチャットに表示",
         hookMissing = "Mass Deconstructor が見つからないため、保護フックを設定できませんでした。",
-        summary = "%d 個のアイテムを除外：秘術 %d、伝説 %d、モンスターセット %d、アリーナ武器 %d。",
+        summary = "%d 個のアイテムを除外：秘術 %d、伝説 %d、モンスターセット %d、アリーナ武器 %d、現在のメタ %d、旧メタ %d。",
         deconstructError = "Mass Deconstructor エラー：",
         listError = "Mass Deconstructor リストエラー：",
-        status = "秘術=%s、伝説=%s、モンスター=%s、アリーナ=%s、保護=%s、言語=%s",
+        status = "秘術=%s、伝説=%s、モンスター=%s、アリーナ=%s、現在=%s、旧=%s、保護=%s、言語=%s",
     },
 }
 
@@ -166,36 +428,65 @@ local function IsMonsterSetType(setType)
         or setType == SET_TYPE_CYRODIIL_MONSTER
 end
 
--- Returns true plus a short reason when Mass Deconstructor must skip the item.
-function SF.IsProtected(bagId, slotIndex)
+local function StoreProtectionResult(cache, cacheKey, isProtected, reason)
+    if cache ~= nil and cacheKey ~= nil then
+        cache[cacheKey] = { isProtected = isProtected, reason = reason }
+    end
+    return isProtected, reason
+end
+
+-- Single early-exit path for every protection category. A per-operation cache
+-- lets the virtual lock, batch interceptor, and legacy queue share one lookup.
+function SF.ShouldProtectItem(bagId, slotIndex, cache)
+    local cacheKey = nil
+    if cache ~= nil then
+        cacheKey = tostring(bagId) .. ":" .. tostring(slotIndex)
+        local cached = cache[cacheKey]
+        if cached ~= nil then
+            return cached.isProtected, cached.reason
+        end
+    end
+
     local itemLink = GetItemLink(bagId, slotIndex, LINK_STYLE_DEFAULT)
     if itemLink == nil or itemLink == "" then
-        return false
+        return StoreProtectionResult(cache, cacheKey, false)
     end
 
-    local quality = GetItemLinkDisplayQuality(itemLink)
-    if SF.settings.protectMythic and quality == QUALITY_MYTHIC then
-        return true, "mythic"
+    if SF.settings.protectMythic or SF.settings.protectLegendary then
+        local quality = GetItemLinkDisplayQuality(itemLink)
+        if SF.settings.protectMythic and quality == QUALITY_MYTHIC then
+            return StoreProtectionResult(cache, cacheKey, true, "mythic")
+        end
+
+        if SF.settings.protectLegendary and quality == QUALITY_LEGENDARY then
+            return StoreProtectionResult(cache, cacheKey, true, "legendary")
+        end
     end
 
-    if SF.settings.protectLegendary and quality == QUALITY_LEGENDARY then
-        return true, "legendary"
+    if not SF.settings.protectMonsterSets
+        and not SF.settings.protectArenaWeapons
+        and not SF.settings.protectRecommendedU50Sets
+        and not SF.settings.protectLegacyMetaSets then
+        return StoreProtectionResult(cache, cacheKey, false)
     end
 
     local libSets = LibSets
     if libSets == nil or libSets.IsSetByItemLink == nil then
-        return false
+        return StoreProtectionResult(cache, cacheKey, false)
     end
 
     local isSet, _, setId, _, _, maxEquipped = libSets.IsSetByItemLink(itemLink)
     if not isSet or setId == nil then
-        return false
+        return StoreProtectionResult(cache, cacheKey, false)
     end
 
-    local setType = libSets.GetSetType and libSets.GetSetType(setId) or nil
+    local setType = nil
+    if SF.settings.protectMonsterSets or SF.settings.protectArenaWeapons then
+        setType = libSets.GetSetType and libSets.GetSetType(setId) or nil
+    end
 
     if SF.settings.protectMonsterSets and IsMonsterSetType(setType) then
-        return true, "monster"
+        return StoreProtectionResult(cache, cacheKey, true, "monster")
     end
 
     if SF.settings.protectArenaWeapons
@@ -203,20 +494,32 @@ function SF.IsProtected(bagId, slotIndex)
         and IsWeapon(itemLink)
         and maxEquipped ~= nil
         and maxEquipped <= 2 then
-        return true, "arena"
+        return StoreProtectionResult(cache, cacheKey, true, "arena")
     end
 
-    return false
+    if SF.settings.protectRecommendedU50Sets and currentMetaSetIds[setId] ~= nil then
+        return StoreProtectionResult(cache, cacheKey, true, "currentMeta")
+    end
+
+    if SF.settings.protectLegacyMetaSets and legacyMetaSetIds[setId] ~= nil then
+        return StoreProtectionResult(cache, cacheKey, true, "legacyMeta")
+    end
+
+    return StoreProtectionResult(cache, cacheKey, false)
 end
 
-local function RemoveProtectedQueueItems()
+-- Preserve the existing public helper name for compatibility with any macros
+-- or companion addons that already call it.
+SF.IsProtected = SF.ShouldProtectItem
+
+local function RemoveProtectedQueueItems(cache)
     if MD == nil or type(MD.deconstructQueue) ~= "table" then
         return
     end
 
     for index = #MD.deconstructQueue, 1, -1 do
         local queuedItem = MD.deconstructQueue[index]
-        if queuedItem ~= nil and SF.IsProtected(queuedItem.bagId, queuedItem.slotIndex) then
+        if queuedItem ~= nil and SF.ShouldProtectItem(queuedItem.bagId, queuedItem.slotIndex, cache) then
             table.remove(MD.deconstructQueue, index)
         end
     end
@@ -239,11 +542,11 @@ end
 
 -- Mass Deconstructor already respects ESO's player-lock check. Replace that
 -- check only while it builds a queue, without changing the real item lock.
-local function CallWithVirtualLocks(callback, excluded, ...)
+local function CallWithVirtualLocks(callback, excluded, cache, ...)
     local originalIsItemPlayerLocked = IsItemPlayerLocked
 
     IsItemPlayerLocked = function(bagId, slotIndex)
-        local protected, reason = SF.IsProtected(bagId, slotIndex)
+        local protected, reason = SF.ShouldProtectItem(bagId, slotIndex, cache)
         if protected then
             RecordExcluded(excluded, bagId, slotIndex, reason, 1)
             return true
@@ -270,12 +573,21 @@ local function InstallMassDeconstructorHook()
 
     MD.StartDeconstruction = function(...)
         local originalAddItem = AddItemToDeconstructMessage
-        local excluded = { mythic = 0, legendary = 0, monster = 0, arena = 0, seen = {} }
+        local excluded = {
+            mythic = 0,
+            legendary = 0,
+            monster = 0,
+            arena = 0,
+            currentMeta = 0,
+            legacyMeta = 0,
+            seen = {},
+        }
+        local protectionCache = {}
 
         -- Mass Deconstructor builds its batch through this API. Intercepting it
         -- leaves normal/manual deconstruction untouched and does not lock items.
         AddItemToDeconstructMessage = function(bagId, slotIndex, quantity)
-            local protected, reason = SF.IsProtected(bagId, slotIndex)
+            local protected, reason = SF.ShouldProtectItem(bagId, slotIndex, protectionCache)
             if protected then
                 RecordExcluded(excluded, bagId, slotIndex, reason, quantity)
                 return false
@@ -283,14 +595,19 @@ local function InstallMassDeconstructorHook()
             return originalAddItem(bagId, slotIndex, quantity)
         end
 
-        local results = CallWithVirtualLocks(originalStartDeconstruction, excluded, ...)
+        local results = CallWithVirtualLocks(originalStartDeconstruction, excluded, protectionCache, ...)
         AddItemToDeconstructMessage = originalAddItem
 
         -- Also protect the legacy one-at-a-time queue used by older paths.
-        RemoveProtectedQueueItems()
+        RemoveProtectedQueueItems(protectionCache)
 
         if SF.settings.showSummary then
-            local total = excluded.mythic + excluded.legendary + excluded.monster + excluded.arena
+            local total = excluded.mythic
+                + excluded.legendary
+                + excluded.monster
+                + excluded.arena
+                + excluded.currentMeta
+                + excluded.legacyMeta
             if total > 0 then
                 Print(string.format(
                     T("summary"),
@@ -298,7 +615,9 @@ local function InstallMassDeconstructorHook()
                     excluded.mythic,
                     excluded.legendary,
                     excluded.monster,
-                    excluded.arena
+                    excluded.arena,
+                    excluded.currentMeta,
+                    excluded.legacyMeta
                 ))
             end
         end
@@ -317,7 +636,7 @@ local function InstallMassDeconstructorHook()
     if type(MD.OnCrafting) == "function" then
         local originalOnCrafting = MD.OnCrafting
         MD.OnCrafting = function(...)
-            local results = CallWithVirtualLocks(originalOnCrafting, nil, ...)
+            local results = CallWithVirtualLocks(originalOnCrafting, nil, {}, ...)
             if not results[1] then
                 Print(T("listError") .. tostring(results[2]))
                 return
@@ -396,6 +715,22 @@ local function RegisterSettingsMenu()
         },
         {
             type = "checkbox",
+            name = T("protectRecommended"),
+            tooltip = T("protectRecommendedTip"),
+            getFunc = function() return SF.settings.protectRecommendedU50Sets end,
+            setFunc = function(value) SF.settings.protectRecommendedU50Sets = value end,
+            default = defaults.protectRecommendedU50Sets,
+        },
+        {
+            type = "checkbox",
+            name = T("protectLegacy"),
+            tooltip = T("protectLegacyTip"),
+            getFunc = function() return SF.settings.protectLegacyMetaSets end,
+            setFunc = function(value) SF.settings.protectLegacyMetaSets = value end,
+            default = defaults.protectLegacyMetaSets,
+        },
+        {
+            type = "checkbox",
             name = T("showSummary"),
             getFunc = function() return SF.settings.showSummary end,
             setFunc = function(value) SF.settings.showSummary = value end,
@@ -433,6 +768,8 @@ local function OnAddonLoaded(_, addonName)
                 tostring(SF.settings.protectLegendary),
                 tostring(SF.settings.protectMonsterSets),
                 tostring(SF.settings.protectArenaWeapons),
+                tostring(SF.settings.protectRecommendedU50Sets),
+                tostring(SF.settings.protectLegacyMetaSets),
                 tostring(SF.hookInstalled == true),
                 languageCode
             ))
