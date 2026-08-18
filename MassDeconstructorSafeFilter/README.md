@@ -37,8 +37,8 @@
 
 Дополнительный переключатель **«Сначала изучать востребованные трейты»** заменяет выбор первого предмета по номеру ячейки на три последовательных уровня:
 
-1. Популярные: Divines, Reinforced, Impenetrable, Well-Fitted, Infused и Sturdy на броне; Nirnhoned, Precise, Sharpened, Infused, Charged, Powered и Defending на оружии; Bloodthirsty, Infused, Swift и Triune на украшениях.
-2. Полезные: Nirnhoned и Training на броне; Training и Decisive на оружии; Harmony и Protective на украшениях.
+1. Популярные: Divines, Reinforced, Impenetrable, Well-Fitted, Infused и Sturdy на броне; Nirnhoned, Precise, Sharpened, Infused, Charged, Powered, Defending и Decisive на оружии; Bloodthirsty, Infused, Swift, Triune и Harmony на украшениях.
+2. Полезные: Nirnhoned и Training на броне; Training на оружии; Protective на украшениях.
 3. Все оставшиеся исследуемые трейты.
 
 Штатные настройки PAWorker, занятые линии исследования, его защита коллекции сетов и метки FCO ItemSaver продолжают применяться. Если на первом уровне нет подходящего предмета, фильтр сразу проверяет второй и третий уровни; автоизучение из-за приоритета не останавливается.
