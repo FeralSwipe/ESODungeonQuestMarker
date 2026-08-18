@@ -3,7 +3,7 @@ MDSafeFilter = MDSafeFilter or {}
 local SF = MDSafeFilter
 SF.name = "MassDeconstructorSafeFilter"
 SF.displayName = "Mass Deconstructor Safe Filter"
-SF.version = "1.4.0"
+SF.version = "1.5.0"
 
 local SET_TYPE_ARENA = LIBSETS_SETTYPE_ARENA or 1
 local SET_TYPE_MONSTER = LIBSETS_SETTYPE_MONSTER or 8
@@ -251,12 +251,23 @@ local defaults = {
     protectArenaWeapons = true,
     protectRecommendedU50Sets = true,
     protectLegacyMetaSets = true,
+    protectPAWorkerResearch = true,
+    protectResearchBoPTradeable = true,
+    protectResearchBankItems = true,
+    protectResearchRetraited = true,
+    protectResearchCrafted = true,
+    protectResearchReconstructed = true,
+    protectResearchLegendary = true,
+    protectResearchMythic = true,
+    protectResearchSpecialSets = true,
+    prioritizeResearchTraits = true,
     showSummary = true,
 }
 
 local translations = {
     en = {
-        description = "Extra safety exclusions applied only to Mass Deconstructor. Manual deconstruction and item locks are not changed.",
+        description = "Extra safety exclusions for Mass Deconstructor and PersonalAssistant Worker. Manual actions and item locks are not changed.",
+        deconstructionHeader = "Mass Deconstructor protection",
         protectMythic = "Protect mythic items",
         protectMythicTip = "Exclude orange mythic items, such as the Ring of the Pale Order.",
         protectLegendary = "Protect legendary items",
@@ -269,12 +280,33 @@ local translations = {
         protectRecommendedTip = "Exclude the current U50 PvE/PvP collection by stable setId, including normal and Perfected variants.",
         protectLegacy = "Protect legacy meta sets",
         protectLegacyTip = "Exclude additional sets from the older Alcast tank, healer, Magicka DPS, and Stamina DPS guides.",
+        researchHeader = "PersonalAssistant Worker auto-research protection",
+        protectResearchMaster = "Enable auto-research protection",
+        protectResearchMasterTip = "Apply the options below only while PersonalAssistant Worker automatically selects a trait-research item. Manual research is not changed.",
+        protectResearchBoP = "Protect tradeable Bind-on-Pickup items",
+        protectResearchBoPTip = "Do not let PAWorker research group-bound items while their trade window is still open.",
+        protectResearchBank = "Protect bank items",
+        protectResearchBankTip = "Do not let PAWorker auto-research items from the bank or ESO Plus bank.",
+        protectResearchRetraited = "Protect transmuted-trait items",
+        protectResearchRetraitedTip = "Do not let PAWorker auto-research items whose trait was changed at a Transmute Station.",
+        protectResearchCrafted = "Protect crafted items",
+        protectResearchCraftedTip = "Do not let PAWorker auto-research player-crafted items.",
+        protectResearchReconstructed = "Protect reconstructed items",
+        protectResearchReconstructedTip = "Do not let PAWorker auto-research items reconstructed from Collections.",
+        protectResearchLegendary = "Protect legendary items from auto-research",
+        protectResearchLegendaryTip = "Do not let PAWorker auto-research gold legendary items.",
+        protectResearchMythic = "Protect mythic items from auto-research",
+        protectResearchMythicTip = "Do not let PAWorker auto-research orange mythic items.",
+        protectResearchSpecial = "Protect arena weapons and monster sets",
+        protectResearchSpecialTip = "Do not let PAWorker auto-research arena weapons or monster-set pieces whose full set bonus requires at most two pieces.",
+        prioritizeResearchTraits = "Prioritize popular traits",
+        prioritizeResearchTraitsTip = "Let PAWorker choose commonly used PvE/PvP traits first, useful traits second, and all remaining traits last.",
         showSummary = "Show exclusion summary in chat",
         hookMissing = "Mass Deconstructor was not found; protection hook was not installed.",
         summary = "Excluded %d item(s): mythic %d, legendary %d, monster sets %d, arena weapons %d, current meta %d, legacy meta %d.",
         deconstructError = "Mass Deconstructor error: ",
         listError = "Mass Deconstructor list error: ",
-        status = "mythic=%s, legendary=%s, monster=%s, arena=%s, current=%s, legacy=%s, hook=%s, language=%s",
+        status = "mythic=%s, legendary=%s, monster=%s, arena=%s, current=%s, legacy=%s, deconstruct-hook=%s, auto-research=%s, PAWorker-hook=%s, language=%s",
     },
     de = {
         description = "Zusätzliche Schutzausnahmen nur für Mass Deconstructor. Manuelles Zerlegen und Gegenstandssperren werden nicht verändert.",
@@ -319,7 +351,8 @@ local translations = {
         status = "mythique=%s, légendaire=%s, monstre=%s, arène=%s, actuel=%s, ancien=%s, protection=%s, langue=%s",
     },
     ru = {
-        description = "Дополнительные защитные исключения только для Mass Deconstructor. Ручной разбор и блокировки предметов не изменяются.",
+        description = "Дополнительные защитные исключения для Mass Deconstructor и PersonalAssistant Worker. Ручные действия и блокировки предметов не изменяются.",
+        deconstructionHeader = "Защита Mass Deconstructor",
         protectMythic = "Защищать мифические предметы",
         protectMythicTip = "Исключать оранжевые мифические предметы, например Кольцо Бледного ордена.",
         protectLegendary = "Защищать легендарные предметы",
@@ -332,12 +365,33 @@ local translations = {
         protectRecommendedTip = "Исключать актуальную U50-коллекцию PvE/PvP по устойчивым setId, включая обычные и совершенные варианты.",
         protectLegacy = "Защищать устаревшие метовые сеты",
         protectLegacyTip = "Исключать дополнительные сеты из старых гайдов Alcast для танка, хила, Magicka DPS и Stamina DPS.",
+        researchHeader = "Защита автоизучения PersonalAssistant Worker",
+        protectResearchMaster = "Включить защиту автоизучения",
+        protectResearchMasterTip = "Применять параметры ниже только при автоматическом выборе предмета для изучения трейта в PAWorker. Ручное изучение не изменяется.",
+        protectResearchBoP = "Защищать доступные для обмена BoP-предметы",
+        protectResearchBoPTip = "Не позволять PAWorker изучать привязанные к группе предметы, пока ещё открыто окно обмена.",
+        protectResearchBank = "Защищать предметы в банке",
+        protectResearchBankTip = "Не позволять PAWorker автоматически изучать предметы из обычного банка и банка ESO Plus.",
+        protectResearchRetraited = "Защищать предметы с изменённым трейтом",
+        protectResearchRetraitedTip = "Не позволять PAWorker автоматически изучать предметы, чей трейт изменён на станции трансмутации.",
+        protectResearchCrafted = "Защищать крафтовые предметы",
+        protectResearchCraftedTip = "Не позволять PAWorker автоматически изучать созданные игроками предметы.",
+        protectResearchReconstructed = "Защищать воссозданные предметы",
+        protectResearchReconstructedTip = "Не позволять PAWorker автоматически изучать предметы, воссозданные из коллекции.",
+        protectResearchLegendary = "Защищать легендарные предметы от автоизучения",
+        protectResearchLegendaryTip = "Не позволять PAWorker автоматически изучать золотые предметы легендарного качества.",
+        protectResearchMythic = "Защищать мифические предметы от автоизучения",
+        protectResearchMythicTip = "Не позволять PAWorker автоматически изучать оранжевые мифические предметы.",
+        protectResearchSpecial = "Защищать оружие арен и монстр-сеты",
+        protectResearchSpecialTip = "Не позволять PAWorker автоматически изучать оружие арен и части монстр-сетов, полный бонус которых требует не более двух предметов.",
+        prioritizeResearchTraits = "Сначала изучать востребованные трейты",
+        prioritizeResearchTraitsTip = "PAWorker сначала выберет популярные PvE/PvP-трейты, затем полезные и только потом все оставшиеся.",
         showSummary = "Показывать итог исключений в чате",
         hookMissing = "Mass Deconstructor не найден; защитный перехватчик не установлен.",
         summary = "Исключено предметов: %d. Мифические: %d, легендарные: %d, монстр-сеты: %d, оружие арен: %d, актуальная мета: %d, устаревшая мета: %d.",
         deconstructError = "Ошибка Mass Deconstructor: ",
         listError = "Ошибка списка Mass Deconstructor: ",
-        status = "мифические=%s, легендарные=%s, монстр-сеты=%s, арены=%s, актуальные=%s, устаревшие=%s, защита=%s, язык=%s",
+        status = "мифические=%s, легендарные=%s, монстр-сеты=%s, арены=%s, актуальные=%s, устаревшие=%s, перехват-разбора=%s, автоизучение=%s, перехват-PAWorker=%s, язык=%s",
     },
     es = {
         description = "Exclusiones de seguridad adicionales aplicadas solo a Mass Deconstructor. El desguace manual y los bloqueos de objetos no cambian.",
@@ -512,6 +566,239 @@ end
 -- or companion addons that already call it.
 SF.IsProtected = SF.ShouldProtectItem
 
+local traitPriority = {}
+
+local function SetTraitPriority(priority, ...)
+    for index = 1, select("#", ...) do
+        local traitType = select(index, ...)
+        if traitType ~= nil then
+            traitPriority[traitType] = priority
+        end
+    end
+end
+
+-- Priority 1: traits commonly requested by current PvE/PvP builds.
+SetTraitPriority(1,
+    ITEM_TRAIT_TYPE_ARMOR_DIVINES,
+    ITEM_TRAIT_TYPE_ARMOR_REINFORCED,
+    ITEM_TRAIT_TYPE_ARMOR_IMPENETRABLE,
+    ITEM_TRAIT_TYPE_ARMOR_WELL_FITTED,
+    ITEM_TRAIT_TYPE_ARMOR_INFUSED,
+    ITEM_TRAIT_TYPE_ARMOR_STURDY,
+    ITEM_TRAIT_TYPE_WEAPON_NIRNHONED,
+    ITEM_TRAIT_TYPE_WEAPON_PRECISE,
+    ITEM_TRAIT_TYPE_WEAPON_SHARPENED,
+    ITEM_TRAIT_TYPE_WEAPON_INFUSED,
+    ITEM_TRAIT_TYPE_WEAPON_CHARGED,
+    ITEM_TRAIT_TYPE_WEAPON_POWERED,
+    ITEM_TRAIT_TYPE_WEAPON_DEFENDING,
+    ITEM_TRAIT_TYPE_JEWELRY_BLOODTHIRSTY,
+    ITEM_TRAIT_TYPE_JEWELRY_INFUSED,
+    ITEM_TRAIT_TYPE_JEWELRY_SWIFT,
+    ITEM_TRAIT_TYPE_JEWELRY_TRIUNE
+)
+
+-- Priority 2: useful secondary, tanking, levelling, and support traits.
+SetTraitPriority(2,
+    ITEM_TRAIT_TYPE_ARMOR_NIRNHONED,
+    ITEM_TRAIT_TYPE_ARMOR_TRAINING,
+    ITEM_TRAIT_TYPE_WEAPON_TRAINING,
+    ITEM_TRAIT_TYPE_WEAPON_DECISIVE,
+    ITEM_TRAIT_TYPE_JEWELRY_HARMONY,
+    ITEM_TRAIT_TYPE_JEWELRY_PROTECTIVE
+)
+
+local function GetTraitPriority(traitType)
+    return traitPriority[traitType] or 3
+end
+
+local function GetAutoResearchCacheKey(bagId, slotIndex)
+    local uniqueId = GetItemUniqueId and GetItemUniqueId(bagId, slotIndex) or nil
+    if uniqueId ~= nil and Id64ToString ~= nil then
+        return tostring(bagId) .. ":" .. tostring(slotIndex) .. ":" .. Id64ToString(uniqueId)
+    end
+    return tostring(bagId) .. ":" .. tostring(slotIndex) .. ":" .. tostring(GetItemLink(bagId, slotIndex, LINK_STYLE_DEFAULT))
+end
+
+-- One early-exit path for all PAWorker auto-research exclusions. Results are
+-- cached by the item's unique id for the whole recursive auto-research run.
+function SF.ShouldProtectAutoResearchItem(bagId, slotIndex, traitInformation, cache)
+    if not SF.settings.protectPAWorkerResearch then
+        return false
+    end
+
+    local cacheKey = GetAutoResearchCacheKey(bagId, slotIndex)
+    local cached = cache and cache[cacheKey] or nil
+    if cached ~= nil then
+        return cached.isProtected, cached.reason
+    end
+
+    if SF.settings.protectResearchBoPTradeable and IsItemBoPAndTradeable(bagId, slotIndex) then
+        return StoreProtectionResult(cache, cacheKey, true, "researchBoPTradeable")
+    end
+
+    if SF.settings.protectResearchBankItems
+        and (bagId == BAG_BANK or bagId == BAG_SUBSCRIBER_BANK) then
+        return StoreProtectionResult(cache, cacheKey, true, "researchBank")
+    end
+
+    if SF.settings.protectResearchRetraited
+        and traitInformation == ITEM_TRAIT_INFORMATION_RETRAITED then
+        return StoreProtectionResult(cache, cacheKey, true, "researchRetraited")
+    end
+
+    local itemLink = GetItemLink(bagId, slotIndex, LINK_STYLE_DEFAULT)
+    if itemLink == nil or itemLink == "" then
+        return StoreProtectionResult(cache, cacheKey, false)
+    end
+
+    if SF.settings.protectResearchCrafted and IsItemLinkCrafted(itemLink) then
+        return StoreProtectionResult(cache, cacheKey, true, "researchCrafted")
+    end
+
+    if SF.settings.protectResearchReconstructed and IsItemReconstructed(bagId, slotIndex) then
+        return StoreProtectionResult(cache, cacheKey, true, "researchReconstructed")
+    end
+
+    if SF.settings.protectResearchLegendary or SF.settings.protectResearchMythic then
+        local quality = GetItemLinkDisplayQuality(itemLink)
+        if SF.settings.protectResearchLegendary and quality == QUALITY_LEGENDARY then
+            return StoreProtectionResult(cache, cacheKey, true, "researchLegendary")
+        end
+        if SF.settings.protectResearchMythic and quality == QUALITY_MYTHIC then
+            return StoreProtectionResult(cache, cacheKey, true, "researchMythic")
+        end
+    end
+
+    if not SF.settings.protectResearchSpecialSets then
+        return StoreProtectionResult(cache, cacheKey, false)
+    end
+
+    local libSets = LibSets
+    if libSets == nil or libSets.IsSetByItemLink == nil then
+        return StoreProtectionResult(cache, cacheKey, false)
+    end
+
+    local isSet, _, setId, _, _, maxEquipped = libSets.IsSetByItemLink(itemLink)
+    if not isSet or setId == nil or maxEquipped == nil or maxEquipped > 2 then
+        return StoreProtectionResult(cache, cacheKey, false)
+    end
+
+    local setType = libSets.GetSetType and libSets.GetSetType(setId) or nil
+    if IsMonsterSetType(setType) then
+        return StoreProtectionResult(cache, cacheKey, true, "researchMonster")
+    end
+
+    if setType == SET_TYPE_ARENA and IsWeapon(itemLink) then
+        return StoreProtectionResult(cache, cacheKey, true, "researchArena")
+    end
+
+    return StoreProtectionResult(cache, cacheKey, false)
+end
+
+local RunPAWorkerResearchPasses
+
+local function CallInPAWorkerResearchContext(state, callback, ...)
+    local originalGetItemTraitInformation = GetItemTraitInformation
+    local originalZoCallLater = zo_callLater
+
+    GetItemTraitInformation = function(bagId, slotIndex)
+        local traitInformation = originalGetItemTraitInformation(bagId, slotIndex)
+        if traitInformation ~= ITEM_TRAIT_INFORMATION_CAN_BE_RESEARCHED
+            and traitInformation ~= ITEM_TRAIT_INFORMATION_RETRAITED then
+            return traitInformation
+        end
+
+        local protected = SF.ShouldProtectAutoResearchItem(
+            bagId,
+            slotIndex,
+            traitInformation,
+            state.protectionCache
+        )
+        if protected then
+            return ITEM_TRAIT_INFORMATION_NONE or 0
+        end
+
+        if traitInformation == ITEM_TRAIT_INFORMATION_CAN_BE_RESEARCHED
+            and state.activePriority ~= nil
+            and GetTraitPriority(GetItemTrait(bagId, slotIndex)) ~= state.activePriority then
+            return ITEM_TRAIT_INFORMATION_NONE or 0
+        end
+
+        return traitInformation
+    end
+
+    zo_callLater = function(delayedCallback, delayMilliseconds)
+        if delayMilliseconds == 100 then
+            state.selectionScheduled = true
+        elseif delayMilliseconds == 1000 and state.suppressExit then
+            return nil
+        end
+
+        if delayMilliseconds == 500 and SF.settings.prioritizeResearchTraits then
+            return originalZoCallLater(function()
+                return RunPAWorkerResearchPasses(state, delayedCallback)
+            end, delayMilliseconds)
+        end
+
+        return originalZoCallLater(function(...)
+            local delayedResults = CallInPAWorkerResearchContext(state, delayedCallback, ...)
+            if not delayedResults[1] then
+                error(delayedResults[2])
+            end
+            return unpack(delayedResults, 2)
+        end, delayMilliseconds)
+    end
+
+    local results = { pcall(callback, ...) }
+    GetItemTraitInformation = originalGetItemTraitInformation
+    zo_callLater = originalZoCallLater
+    return results
+end
+
+RunPAWorkerResearchPasses = function(state, callback, ...)
+    local arguments = { ... }
+    local lastPriority = SF.settings.prioritizeResearchTraits and 3 or 1
+
+    for priority = 1, lastPriority do
+        state.activePriority = SF.settings.prioritizeResearchTraits and priority or nil
+        state.selectionScheduled = false
+        state.suppressExit = priority < lastPriority
+
+        local results = CallInPAWorkerResearchContext(state, callback, unpack(arguments))
+        if not results[1] then
+            error(results[2])
+        end
+        if state.selectionScheduled or priority == lastPriority then
+            return unpack(results, 2)
+        end
+    end
+end
+
+local function InstallPAWorkerResearchHook()
+    local personalAssistant = PersonalAssistant
+    local worker = personalAssistant and personalAssistant.Worker or nil
+    if worker == nil or type(worker.StartResearchTrait) ~= "function" then
+        return false
+    end
+
+    if SF.paWorkerHookInstalled then
+        return true
+    end
+
+    local originalStartResearchTrait = worker.StartResearchTrait
+    worker.StartResearchTrait = function(...)
+        if not SF.settings.protectPAWorkerResearch and not SF.settings.prioritizeResearchTraits then
+            return originalStartResearchTrait(...)
+        end
+
+        return RunPAWorkerResearchPasses({ protectionCache = {} }, originalStartResearchTrait, ...)
+    end
+
+    SF.paWorkerHookInstalled = true
+    return true
+end
+
 local function RemoveProtectedQueueItems(cache)
     if MD == nil or type(MD.deconstructQueue) ~= "table" then
         return
@@ -676,10 +963,18 @@ local function RegisterSettingsMenu()
         registerForDefaults = true,
     }
 
+    local function IsAutoResearchProtectionDisabled()
+        return not SF.settings.protectPAWorkerResearch
+    end
+
     local options = {
         {
             type = "description",
             text = T("description"),
+        },
+        {
+            type = "header",
+            name = T("deconstructionHeader"),
         },
         {
             type = "checkbox",
@@ -736,6 +1031,98 @@ local function RegisterSettingsMenu()
             setFunc = function(value) SF.settings.showSummary = value end,
             default = defaults.showSummary,
         },
+        {
+            type = "header",
+            name = T("researchHeader"),
+        },
+        {
+            type = "checkbox",
+            name = T("protectResearchMaster"),
+            tooltip = T("protectResearchMasterTip"),
+            getFunc = function() return SF.settings.protectPAWorkerResearch end,
+            setFunc = function(value) SF.settings.protectPAWorkerResearch = value end,
+            default = defaults.protectPAWorkerResearch,
+        },
+        {
+            type = "checkbox",
+            name = T("prioritizeResearchTraits"),
+            tooltip = T("prioritizeResearchTraitsTip"),
+            getFunc = function() return SF.settings.prioritizeResearchTraits end,
+            setFunc = function(value) SF.settings.prioritizeResearchTraits = value end,
+            default = defaults.prioritizeResearchTraits,
+        },
+        {
+            type = "checkbox",
+            name = T("protectResearchBoP"),
+            tooltip = T("protectResearchBoPTip"),
+            getFunc = function() return SF.settings.protectResearchBoPTradeable end,
+            setFunc = function(value) SF.settings.protectResearchBoPTradeable = value end,
+            disabled = IsAutoResearchProtectionDisabled,
+            default = defaults.protectResearchBoPTradeable,
+        },
+        {
+            type = "checkbox",
+            name = T("protectResearchBank"),
+            tooltip = T("protectResearchBankTip"),
+            getFunc = function() return SF.settings.protectResearchBankItems end,
+            setFunc = function(value) SF.settings.protectResearchBankItems = value end,
+            disabled = IsAutoResearchProtectionDisabled,
+            default = defaults.protectResearchBankItems,
+        },
+        {
+            type = "checkbox",
+            name = T("protectResearchRetraited"),
+            tooltip = T("protectResearchRetraitedTip"),
+            getFunc = function() return SF.settings.protectResearchRetraited end,
+            setFunc = function(value) SF.settings.protectResearchRetraited = value end,
+            disabled = IsAutoResearchProtectionDisabled,
+            default = defaults.protectResearchRetraited,
+        },
+        {
+            type = "checkbox",
+            name = T("protectResearchCrafted"),
+            tooltip = T("protectResearchCraftedTip"),
+            getFunc = function() return SF.settings.protectResearchCrafted end,
+            setFunc = function(value) SF.settings.protectResearchCrafted = value end,
+            disabled = IsAutoResearchProtectionDisabled,
+            default = defaults.protectResearchCrafted,
+        },
+        {
+            type = "checkbox",
+            name = T("protectResearchReconstructed"),
+            tooltip = T("protectResearchReconstructedTip"),
+            getFunc = function() return SF.settings.protectResearchReconstructed end,
+            setFunc = function(value) SF.settings.protectResearchReconstructed = value end,
+            disabled = IsAutoResearchProtectionDisabled,
+            default = defaults.protectResearchReconstructed,
+        },
+        {
+            type = "checkbox",
+            name = T("protectResearchLegendary"),
+            tooltip = T("protectResearchLegendaryTip"),
+            getFunc = function() return SF.settings.protectResearchLegendary end,
+            setFunc = function(value) SF.settings.protectResearchLegendary = value end,
+            disabled = IsAutoResearchProtectionDisabled,
+            default = defaults.protectResearchLegendary,
+        },
+        {
+            type = "checkbox",
+            name = T("protectResearchMythic"),
+            tooltip = T("protectResearchMythicTip"),
+            getFunc = function() return SF.settings.protectResearchMythic end,
+            setFunc = function(value) SF.settings.protectResearchMythic = value end,
+            disabled = IsAutoResearchProtectionDisabled,
+            default = defaults.protectResearchMythic,
+        },
+        {
+            type = "checkbox",
+            name = T("protectResearchSpecial"),
+            tooltip = T("protectResearchSpecialTip"),
+            getFunc = function() return SF.settings.protectResearchSpecialSets end,
+            setFunc = function(value) SF.settings.protectResearchSpecialSets = value end,
+            disabled = IsAutoResearchProtectionDisabled,
+            default = defaults.protectResearchSpecialSets,
+        },
     }
 
     LAM:RegisterAddonPanel(SF.name .. "Options", panel)
@@ -758,6 +1145,14 @@ local function OnAddonLoaded(_, addonName)
 
     RegisterSettingsMenu()
     InstallMassDeconstructorHook()
+    if not InstallPAWorkerResearchHook() then
+        local paWorkerEventName = SF.name .. "PAWorker"
+        EVENT_MANAGER:RegisterForEvent(paWorkerEventName, EVENT_ADD_ON_LOADED, function(_, loadedAddonName)
+            if loadedAddonName == "PersonalAssistantWorker" and InstallPAWorkerResearchHook() then
+                EVENT_MANAGER:UnregisterForEvent(paWorkerEventName, EVENT_ADD_ON_LOADED)
+            end
+        end)
+    end
 
     SLASH_COMMANDS["/mdsf"] = function(argument)
         argument = zo_strlower(zo_strtrim(argument or ""))
@@ -771,6 +1166,8 @@ local function OnAddonLoaded(_, addonName)
                 tostring(SF.settings.protectRecommendedU50Sets),
                 tostring(SF.settings.protectLegacyMetaSets),
                 tostring(SF.hookInstalled == true),
+                tostring(SF.settings.protectPAWorkerResearch or SF.settings.prioritizeResearchTraits),
+                tostring(SF.paWorkerHookInstalled == true),
                 languageCode
             ))
         end

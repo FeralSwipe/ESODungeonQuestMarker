@@ -1,6 +1,6 @@
 # ESO Dungeon Quest Marker
 
-В этом репозитории также находится [Mass Deconstructor Safe Filter](MassDeconstructorSafeFilter/README.md) — защитный фильтр для Mass Deconstructor, исключающий из массового разбора мифические и легендарные предметы, монстр-сеты, оружие арен, актуальные и устаревшие метовые наборы.
+В этом репозитории также находится [Mass Deconstructor Safe Filter](MassDeconstructorSafeFilter/README.md) — защитный фильтр для Mass Deconstructor и автоизучения трейтов PersonalAssistant Worker. Он исключает ценные предметы из массового разбора, блокирует их автоматическое исследование и умеет отдавать приоритет востребованным PvE/PvP-трейтам.
 
 Аддон для The Elder Scrolls Online, который помогает находить групповые подземелья с невыполненным заданием на очко навыка.
 

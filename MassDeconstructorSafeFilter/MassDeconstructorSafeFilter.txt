@@ -1,10 +1,11 @@
 ## Title: Mass Deconstructor Safe Filter
-## Description: Protects mythic and legendary items, monster sets, arena weapons, current meta sets, and legacy meta sets from Mass Deconstructor.
+## Description: Protects special items from Mass Deconstructor and PersonalAssistant Worker auto-research.
 ## Author: Codex for @FeralSwipe
-## Version: 1.4.0
-## AddOnVersion: 10400
+## Version: 1.5.0
+## AddOnVersion: 10500
 ## APIVersion: 101050 101051
 ## SavedVariables: MassDeconstructorSafeFilterSavedVars
 ## DependsOn: MassDeconstructor LibSets
+## OptionalDependsOn: PersonalAssistantWorker
 
 MassDeconstructorSafeFilter.lua
