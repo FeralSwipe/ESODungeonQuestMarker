@@ -3,7 +3,7 @@ MDSafeFilter = MDSafeFilter or {}
 local SF = MDSafeFilter
 SF.name = "MassDeconstructorSafeFilter"
 SF.displayName = "Mass Deconstructor Safe Filter"
-SF.version = "1.5.0"
+SF.version = "1.5.1"
 
 local SET_TYPE_ARENA = LIBSETS_SETTYPE_ARENA or 1
 local SET_TYPE_MONSTER = LIBSETS_SETTYPE_MONSTER or 8
@@ -260,6 +260,8 @@ local defaults = {
     protectResearchLegendary = true,
     protectResearchMythic = true,
     protectResearchSpecialSets = true,
+    protectResearchCurrentMetaSets = true,
+    protectResearchLegacyMetaSets = true,
     prioritizeResearchTraits = true,
     showSummary = true,
 }
@@ -299,6 +301,10 @@ local translations = {
         protectResearchMythicTip = "Do not let PAWorker auto-research orange mythic items.",
         protectResearchSpecial = "Protect arena weapons and monster sets",
         protectResearchSpecialTip = "Do not let PAWorker auto-research arena weapons or monster-set pieces whose full set bonus requires at most two pieces.",
+        protectResearchCurrentMeta = "Protect current meta sets from auto-research",
+        protectResearchCurrentMetaTip = "Do not let PAWorker auto-research items from the current U50 PvE/PvP set collection.",
+        protectResearchLegacyMeta = "Protect legacy meta sets from auto-research",
+        protectResearchLegacyMetaTip = "Do not let PAWorker auto-research items from the legacy meta set collection.",
         prioritizeResearchTraits = "Prioritize popular traits",
         prioritizeResearchTraitsTip = "Let PAWorker choose commonly used PvE/PvP traits first, useful traits second, and all remaining traits last.",
         showSummary = "Show exclusion summary in chat",
@@ -384,6 +390,10 @@ local translations = {
         protectResearchMythicTip = "Не позволять PAWorker автоматически изучать оранжевые мифические предметы.",
         protectResearchSpecial = "Защищать оружие арен и монстр-сеты",
         protectResearchSpecialTip = "Не позволять PAWorker автоматически изучать оружие арен и части монстр-сетов, полный бонус которых требует не более двух предметов.",
+        protectResearchCurrentMeta = "Защищать актуальные метовые сеты от автоизучения",
+        protectResearchCurrentMetaTip = "Не позволять PAWorker автоматически изучать предметы из актуальной U50-коллекции PvE/PvP-сетов.",
+        protectResearchLegacyMeta = "Защищать устаревшие метовые сеты от автоизучения",
+        protectResearchLegacyMetaTip = "Не позволять PAWorker автоматически изучать предметы из коллекции устаревших метовых сетов.",
         prioritizeResearchTraits = "Сначала изучать востребованные трейты",
         prioritizeResearchTraitsTip = "PAWorker сначала выберет популярные PvE/PvP-трейты, затем полезные и только потом все оставшиеся.",
         showSummary = "Показывать итог исключений в чате",
@@ -670,7 +680,9 @@ function SF.ShouldProtectAutoResearchItem(bagId, slotIndex, traitInformation, ca
         end
     end
 
-    if not SF.settings.protectResearchSpecialSets then
+    if not SF.settings.protectResearchSpecialSets
+        and not SF.settings.protectResearchCurrentMetaSets
+        and not SF.settings.protectResearchLegacyMetaSets then
         return StoreProtectionResult(cache, cacheKey, false)
     end
 
@@ -680,17 +692,29 @@ function SF.ShouldProtectAutoResearchItem(bagId, slotIndex, traitInformation, ca
     end
 
     local isSet, _, setId, _, _, maxEquipped = libSets.IsSetByItemLink(itemLink)
-    if not isSet or setId == nil or maxEquipped == nil or maxEquipped > 2 then
+    if not isSet or setId == nil then
         return StoreProtectionResult(cache, cacheKey, false)
     end
 
-    local setType = libSets.GetSetType and libSets.GetSetType(setId) or nil
-    if IsMonsterSetType(setType) then
-        return StoreProtectionResult(cache, cacheKey, true, "researchMonster")
+    if SF.settings.protectResearchSpecialSets
+        and maxEquipped ~= nil
+        and maxEquipped <= 2 then
+        local setType = libSets.GetSetType and libSets.GetSetType(setId) or nil
+        if IsMonsterSetType(setType) then
+            return StoreProtectionResult(cache, cacheKey, true, "researchMonster")
+        end
+
+        if setType == SET_TYPE_ARENA and IsWeapon(itemLink) then
+            return StoreProtectionResult(cache, cacheKey, true, "researchArena")
+        end
     end
 
-    if setType == SET_TYPE_ARENA and IsWeapon(itemLink) then
-        return StoreProtectionResult(cache, cacheKey, true, "researchArena")
+    if SF.settings.protectResearchCurrentMetaSets and currentMetaSetIds[setId] ~= nil then
+        return StoreProtectionResult(cache, cacheKey, true, "researchCurrentMeta")
+    end
+
+    if SF.settings.protectResearchLegacyMetaSets and legacyMetaSetIds[setId] ~= nil then
+        return StoreProtectionResult(cache, cacheKey, true, "researchLegacyMeta")
     end
 
     return StoreProtectionResult(cache, cacheKey, false)
@@ -1122,6 +1146,24 @@ local function RegisterSettingsMenu()
             setFunc = function(value) SF.settings.protectResearchSpecialSets = value end,
             disabled = IsAutoResearchProtectionDisabled,
             default = defaults.protectResearchSpecialSets,
+        },
+        {
+            type = "checkbox",
+            name = T("protectResearchCurrentMeta"),
+            tooltip = T("protectResearchCurrentMetaTip"),
+            getFunc = function() return SF.settings.protectResearchCurrentMetaSets end,
+            setFunc = function(value) SF.settings.protectResearchCurrentMetaSets = value end,
+            disabled = IsAutoResearchProtectionDisabled,
+            default = defaults.protectResearchCurrentMetaSets,
+        },
+        {
+            type = "checkbox",
+            name = T("protectResearchLegacyMeta"),
+            tooltip = T("protectResearchLegacyMetaTip"),
+            getFunc = function() return SF.settings.protectResearchLegacyMetaSets end,
+            setFunc = function(value) SF.settings.protectResearchLegacyMetaSets = value end,
+            disabled = IsAutoResearchProtectionDisabled,
+            default = defaults.protectResearchLegacyMetaSets,
         },
     }
 
