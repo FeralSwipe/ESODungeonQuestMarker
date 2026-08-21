@@ -3,7 +3,7 @@ MDSafeFilter = MDSafeFilter or {}
 local SF = MDSafeFilter
 SF.name = "MassDeconstructorSafeFilter"
 SF.displayName = "Mass Deconstructor Safe Filter"
-SF.version = "1.6.0"
+SF.version = "1.7.0"
 
 local SET_TYPE_ARENA = LIBSETS_SETTYPE_ARENA or 1
 local SET_TYPE_MONSTER = LIBSETS_SETTYPE_MONSTER or 8
@@ -245,6 +245,7 @@ local legacyMetaSetIds = {
 }
 
 local defaults = {
+    protectMassDeconstructor = true,
     protectMythic = true,
     protectLegendary = true,
     protectMonsterSets = true,
@@ -266,12 +267,15 @@ local defaults = {
     showResearchNotifications = true,
     showResearchDetails = false,
     showSummary = true,
+    showDeconstructionDetails = false,
 }
 
 local translations = {
     en = {
         description = "Extra safety exclusions for Mass Deconstructor and PersonalAssistant Worker. Manual actions and item locks are not changed.",
         deconstructionHeader = "Mass Deconstructor protection",
+        protectDeconstructionMaster = "Enable Mass Deconstructor protection",
+        protectDeconstructionMasterTip = "Enable the protection categories and notifications below. Disabling this fully bypasses Safe Filter while keeping Mass Deconstructor's own settings unchanged.",
         protectMythic = "Protect mythic items",
         protectMythicTip = "Exclude orange mythic items, such as the Ring of the Pale Order.",
         protectLegendary = "Protect legendary items",
@@ -327,12 +331,17 @@ local translations = {
         researchReasonArena = "arena weapon",
         researchReasonCurrentMeta = "current meta set",
         researchReasonLegacyMeta = "legacy meta set",
-        showSummary = "Show exclusion summary in chat",
+        showSummary = "Show Mass Deconstructor notifications",
+        showSummaryTip = "Show one summary after Mass Deconstructor finishes building a batch and protected items were skipped.",
+        showDeconstructionDetails = "Show detailed skipped-item list",
+        showDeconstructionDetailsTip = "After the summary, list every skipped item with its protection reason and set name when available.",
+        deconstructionDetail = "Skipped: %s — %s",
+        deconstructionDetailSet = "Skipped: %s — %s (set: %s)",
         hookMissing = "Mass Deconstructor was not found; protection hook was not installed.",
         summary = "Excluded %d item(s): mythic %d, legendary %d, monster sets %d, arena weapons %d, current meta %d, legacy meta %d.",
         deconstructError = "Mass Deconstructor error: ",
         listError = "Mass Deconstructor list error: ",
-        status = "mythic=%s, legendary=%s, monster=%s, arena=%s, current=%s, legacy=%s, deconstruct-hook=%s, auto-research=%s, PAWorker-hook=%s, notifications=%s, details=%s, language=%s",
+        status = "mass-protection=%s, mythic=%s, legendary=%s, monster=%s, arena=%s, current=%s, legacy=%s, deconstruct-hook=%s, mass-notifications=%s, mass-details=%s, auto-research-protection=%s, trait-priority=%s, PAWorker-hook=%s, PA-notifications=%s, PA-details=%s, language=%s",
     },
     de = {
         description = "Zusätzliche Schutzausnahmen nur für Mass Deconstructor. Manuelles Zerlegen und Gegenstandssperren werden nicht verändert.",
@@ -353,7 +362,7 @@ local translations = {
         summary = "%d Gegenstand/Gegenstände ausgeschlossen: mythisch %d, legendär %d, Monstersets %d, Arenawaffen %d, aktuelle Meta %d, frühere Meta %d.",
         deconstructError = "Fehler in Mass Deconstructor: ",
         listError = "Fehler in der Mass-Deconstructor-Liste: ",
-        status = "mythisch=%s, legendär=%s, monster=%s, arena=%s, aktuell=%s, früher=%s, schutz=%s, sprache=%s",
+        status = "mass-protection=%s, mythic=%s, legendary=%s, monster=%s, arena=%s, current=%s, legacy=%s, deconstruct-hook=%s, mass-notifications=%s, mass-details=%s, auto-research-protection=%s, trait-priority=%s, PAWorker-hook=%s, PA-notifications=%s, PA-details=%s, language=%s",
     },
     fr = {
         description = "Exclusions de sécurité supplémentaires appliquées uniquement à Mass Deconstructor. Le démontage manuel et les verrous d'objets ne sont pas modifiés.",
@@ -374,11 +383,13 @@ local translations = {
         summary = "%d objet(s) exclu(s) : mythiques %d, légendaires %d, ensembles de monstre %d, armes d'arène %d, méta actuelle %d, ancienne méta %d.",
         deconstructError = "Erreur Mass Deconstructor : ",
         listError = "Erreur de liste Mass Deconstructor : ",
-        status = "mythique=%s, légendaire=%s, monstre=%s, arène=%s, actuel=%s, ancien=%s, protection=%s, langue=%s",
+        status = "mass-protection=%s, mythic=%s, legendary=%s, monster=%s, arena=%s, current=%s, legacy=%s, deconstruct-hook=%s, mass-notifications=%s, mass-details=%s, auto-research-protection=%s, trait-priority=%s, PAWorker-hook=%s, PA-notifications=%s, PA-details=%s, language=%s",
     },
     ru = {
         description = "Дополнительные защитные исключения для Mass Deconstructor и PersonalAssistant Worker. Ручные действия и блокировки предметов не изменяются.",
         deconstructionHeader = "Защита Mass Deconstructor",
+        protectDeconstructionMaster = "Включить защиту Mass Deconstructor",
+        protectDeconstructionMasterTip = "Включает расположенные ниже категории защиты и уведомления. При отключении Safe Filter полностью обходит Mass Deconstructor, не меняя его собственные настройки.",
         protectMythic = "Защищать мифические предметы",
         protectMythicTip = "Исключать оранжевые мифические предметы, например Кольцо Бледного ордена.",
         protectLegendary = "Защищать легендарные предметы",
@@ -434,12 +445,17 @@ local translations = {
         researchReasonArena = "оружие арены",
         researchReasonCurrentMeta = "актуальный метовый сет",
         researchReasonLegacyMeta = "устаревший метовый сет",
-        showSummary = "Показывать итог исключений в чате",
+        showSummary = "Показывать уведомления Mass Deconstructor",
+        showSummaryTip = "Показывать один итог после формирования очереди Mass Deconstructor, если защищённые предметы были пропущены.",
+        showDeconstructionDetails = "Подробный список пропущенных предметов",
+        showDeconstructionDetailsTip = "После итога перечислять каждый пропущенный предмет, причину защиты и название сета, если оно доступно.",
+        deconstructionDetail = "Пропущено: %s — %s",
+        deconstructionDetailSet = "Пропущено: %s — %s (сет: %s)",
         hookMissing = "Mass Deconstructor не найден; защитный перехватчик не установлен.",
         summary = "Исключено предметов: %d. Мифические: %d, легендарные: %d, монстр-сеты: %d, оружие арен: %d, актуальная мета: %d, устаревшая мета: %d.",
         deconstructError = "Ошибка Mass Deconstructor: ",
         listError = "Ошибка списка Mass Deconstructor: ",
-        status = "мифические=%s, легендарные=%s, монстр-сеты=%s, арены=%s, актуальные=%s, устаревшие=%s, перехват-разбора=%s, автоизучение=%s, перехват-PAWorker=%s, уведомления=%s, подробно=%s, язык=%s",
+        status = "защита-разбора=%s, мифические=%s, легендарные=%s, монстр-сеты=%s, арены=%s, актуальные=%s, устаревшие=%s, перехват-разбора=%s, уведомления-разбора=%s, подробно-разбор=%s, защита-автоизучения=%s, приоритет-трейтов=%s, перехват-PAWorker=%s, уведомления-PA=%s, подробно-PA=%s, язык=%s",
     },
     es = {
         description = "Exclusiones de seguridad adicionales aplicadas solo a Mass Deconstructor. El desguace manual y los bloqueos de objetos no cambian.",
@@ -460,7 +476,7 @@ local translations = {
         summary = "%d objeto(s) excluido(s): míticos %d, legendarios %d, conjuntos de monstruo %d, armas de arena %d, meta actual %d, meta antigua %d.",
         deconstructError = "Error de Mass Deconstructor: ",
         listError = "Error de lista de Mass Deconstructor: ",
-        status = "mítico=%s, legendario=%s, monstruo=%s, arena=%s, actual=%s, antiguo=%s, protección=%s, idioma=%s",
+        status = "mass-protection=%s, mythic=%s, legendary=%s, monster=%s, arena=%s, current=%s, legacy=%s, deconstruct-hook=%s, mass-notifications=%s, mass-details=%s, auto-research-protection=%s, trait-priority=%s, PAWorker-hook=%s, PA-notifications=%s, PA-details=%s, language=%s",
     },
     zh = {
         description = "仅对 Mass Deconstructor 应用额外的安全排除，不会更改手动分解或物品锁定。",
@@ -481,7 +497,7 @@ local translations = {
         summary = "已排除 %d 件物品：神话 %d，传奇 %d，怪物套装 %d，竞技场武器 %d，当前主流 %d，旧版主流 %d。",
         deconstructError = "Mass Deconstructor 错误：",
         listError = "Mass Deconstructor 列表错误：",
-        status = "神话=%s，传奇=%s，怪物套装=%s，竞技场=%s，当前=%s，旧版=%s，保护=%s，语言=%s",
+        status = "mass-protection=%s, mythic=%s, legendary=%s, monster=%s, arena=%s, current=%s, legacy=%s, deconstruct-hook=%s, mass-notifications=%s, mass-details=%s, auto-research-protection=%s, trait-priority=%s, PAWorker-hook=%s, PA-notifications=%s, PA-details=%s, language=%s",
     },
     jp = {
         description = "Mass Deconstructor にのみ追加の安全除外を適用します。手動解体やアイテムロックは変更しません。",
@@ -502,7 +518,7 @@ local translations = {
         summary = "%d 個のアイテムを除外：秘術 %d、伝説 %d、モンスターセット %d、アリーナ武器 %d、現在のメタ %d、旧メタ %d。",
         deconstructError = "Mass Deconstructor エラー：",
         listError = "Mass Deconstructor リストエラー：",
-        status = "秘術=%s、伝説=%s、モンスター=%s、アリーナ=%s、現在=%s、旧=%s、保護=%s、言語=%s",
+        status = "mass-protection=%s, mythic=%s, legendary=%s, monster=%s, arena=%s, current=%s, legacy=%s, deconstruct-hook=%s, mass-notifications=%s, mass-details=%s, auto-research-protection=%s, trait-priority=%s, PAWorker-hook=%s, PA-notifications=%s, PA-details=%s, language=%s",
     },
 }
 
@@ -540,6 +556,10 @@ end
 -- Single early-exit path for every protection category. A per-operation cache
 -- lets the virtual lock, batch interceptor, and legacy queue share one lookup.
 function SF.ShouldProtectItem(bagId, slotIndex, cache)
+    if not SF.settings.protectMassDeconstructor then
+        return false
+    end
+
     local cacheKey = nil
     if cache ~= nil then
         cacheKey = tostring(bagId) .. ":" .. tostring(slotIndex)
@@ -989,6 +1009,45 @@ local function RecordExcluded(excluded, bagId, slotIndex, reason, quantity)
 
     excluded.seen[key] = true
     excluded[reason] = (excluded[reason] or 0) + (quantity or 1)
+
+    if not SF.settings.showSummary or not SF.settings.showDeconstructionDetails then
+        return
+    end
+
+    local itemLink = GetItemLink(bagId, slotIndex, LINK_STYLE_BRACKETS)
+    if itemLink == nil or itemLink == "" then
+        return
+    end
+
+    local setName = nil
+    if GetItemLinkSetInfo ~= nil then
+        local isSet, localizedSetName = GetItemLinkSetInfo(itemLink, false)
+        if isSet and localizedSetName ~= nil and localizedSetName ~= "" then
+            setName = localizedSetName
+        end
+    end
+
+    excluded.entries = excluded.entries or {}
+    table.insert(excluded.entries, {
+        itemLink = itemLink,
+        reason = reason,
+        setName = setName,
+    })
+end
+
+local function ShowDeconstructionDetails(excluded)
+    if not SF.settings.showDeconstructionDetails or excluded.entries == nil then
+        return
+    end
+
+    for _, entry in ipairs(excluded.entries) do
+        local reason = T(researchReasonTranslationKeys[entry.reason] or entry.reason)
+        if entry.setName ~= nil then
+            Print(string.format(T("deconstructionDetailSet"), entry.itemLink, reason, entry.setName))
+        else
+            Print(string.format(T("deconstructionDetail"), entry.itemLink, reason))
+        end
+    end
 end
 
 -- Mass Deconstructor already respects ESO's player-lock check. Replace that
@@ -1023,6 +1082,10 @@ local function InstallMassDeconstructorHook()
     local originalStartDeconstruction = MD.StartDeconstruction
 
     MD.StartDeconstruction = function(...)
+        if not SF.settings.protectMassDeconstructor then
+            return originalStartDeconstruction(...)
+        end
+
         local originalAddItem = AddItemToDeconstructMessage
         local excluded = {
             mythic = 0,
@@ -1070,6 +1133,7 @@ local function InstallMassDeconstructorHook()
                     excluded.currentMeta,
                     excluded.legacyMeta
                 ))
+                ShowDeconstructionDetails(excluded)
             end
         end
 
@@ -1087,6 +1151,10 @@ local function InstallMassDeconstructorHook()
     if type(MD.OnCrafting) == "function" then
         local originalOnCrafting = MD.OnCrafting
         MD.OnCrafting = function(...)
+            if not SF.settings.protectMassDeconstructor then
+                return originalOnCrafting(...)
+            end
+
             local results = CallWithVirtualLocks(originalOnCrafting, nil, {}, ...)
             if not results[1] then
                 Print(T("listError") .. tostring(results[2]))
@@ -1102,7 +1170,9 @@ local function InstallMassDeconstructorHook()
     if type(MD.ContinueWork) == "function" then
         local originalContinueWork = MD.ContinueWork
         MD.ContinueWork = function(...)
-            RemoveProtectedQueueItems()
+            if SF.settings.protectMassDeconstructor then
+                RemoveProtectedQueueItems()
+            end
             return originalContinueWork(...)
         end
     end
@@ -1132,7 +1202,15 @@ local function RegisterSettingsMenu()
     end
 
     local function IsAutoResearchDetailsDisabled()
-        return not SF.settings.showResearchNotifications
+        return not SF.settings.protectPAWorkerResearch or not SF.settings.showResearchNotifications
+    end
+
+    local function IsDeconstructionProtectionDisabled()
+        return not SF.settings.protectMassDeconstructor
+    end
+
+    local function IsDeconstructionDetailsDisabled()
+        return not SF.settings.protectMassDeconstructor or not SF.settings.showSummary
     end
 
     local options = {
@@ -1146,10 +1224,37 @@ local function RegisterSettingsMenu()
         },
         {
             type = "checkbox",
+            name = T("protectDeconstructionMaster"),
+            tooltip = T("protectDeconstructionMasterTip"),
+            getFunc = function() return SF.settings.protectMassDeconstructor end,
+            setFunc = function(value) SF.settings.protectMassDeconstructor = value end,
+            default = defaults.protectMassDeconstructor,
+        },
+        {
+            type = "checkbox",
+            name = T("showSummary"),
+            tooltip = T("showSummaryTip"),
+            getFunc = function() return SF.settings.showSummary end,
+            setFunc = function(value) SF.settings.showSummary = value end,
+            disabled = IsDeconstructionProtectionDisabled,
+            default = defaults.showSummary,
+        },
+        {
+            type = "checkbox",
+            name = T("showDeconstructionDetails"),
+            tooltip = T("showDeconstructionDetailsTip"),
+            getFunc = function() return SF.settings.showDeconstructionDetails end,
+            setFunc = function(value) SF.settings.showDeconstructionDetails = value end,
+            disabled = IsDeconstructionDetailsDisabled,
+            default = defaults.showDeconstructionDetails,
+        },
+        {
+            type = "checkbox",
             name = T("protectMythic"),
             tooltip = T("protectMythicTip"),
             getFunc = function() return SF.settings.protectMythic end,
             setFunc = function(value) SF.settings.protectMythic = value end,
+            disabled = IsDeconstructionProtectionDisabled,
             default = defaults.protectMythic,
         },
         {
@@ -1158,6 +1263,7 @@ local function RegisterSettingsMenu()
             tooltip = T("protectLegendaryTip"),
             getFunc = function() return SF.settings.protectLegendary end,
             setFunc = function(value) SF.settings.protectLegendary = value end,
+            disabled = IsDeconstructionProtectionDisabled,
             default = defaults.protectLegendary,
         },
         {
@@ -1166,6 +1272,7 @@ local function RegisterSettingsMenu()
             tooltip = T("protectMonsterTip"),
             getFunc = function() return SF.settings.protectMonsterSets end,
             setFunc = function(value) SF.settings.protectMonsterSets = value end,
+            disabled = IsDeconstructionProtectionDisabled,
             default = defaults.protectMonsterSets,
         },
         {
@@ -1174,6 +1281,7 @@ local function RegisterSettingsMenu()
             tooltip = T("protectArenaTip"),
             getFunc = function() return SF.settings.protectArenaWeapons end,
             setFunc = function(value) SF.settings.protectArenaWeapons = value end,
+            disabled = IsDeconstructionProtectionDisabled,
             default = defaults.protectArenaWeapons,
         },
         {
@@ -1182,6 +1290,7 @@ local function RegisterSettingsMenu()
             tooltip = T("protectRecommendedTip"),
             getFunc = function() return SF.settings.protectRecommendedU50Sets end,
             setFunc = function(value) SF.settings.protectRecommendedU50Sets = value end,
+            disabled = IsDeconstructionProtectionDisabled,
             default = defaults.protectRecommendedU50Sets,
         },
         {
@@ -1190,14 +1299,8 @@ local function RegisterSettingsMenu()
             tooltip = T("protectLegacyTip"),
             getFunc = function() return SF.settings.protectLegacyMetaSets end,
             setFunc = function(value) SF.settings.protectLegacyMetaSets = value end,
+            disabled = IsDeconstructionProtectionDisabled,
             default = defaults.protectLegacyMetaSets,
-        },
-        {
-            type = "checkbox",
-            name = T("showSummary"),
-            getFunc = function() return SF.settings.showSummary end,
-            setFunc = function(value) SF.settings.showSummary = value end,
-            default = defaults.showSummary,
         },
         {
             type = "header",
@@ -1213,18 +1316,11 @@ local function RegisterSettingsMenu()
         },
         {
             type = "checkbox",
-            name = T("prioritizeResearchTraits"),
-            tooltip = T("prioritizeResearchTraitsTip"),
-            getFunc = function() return SF.settings.prioritizeResearchTraits end,
-            setFunc = function(value) SF.settings.prioritizeResearchTraits = value end,
-            default = defaults.prioritizeResearchTraits,
-        },
-        {
-            type = "checkbox",
             name = T("showResearchNotifications"),
             tooltip = T("showResearchNotificationsTip"),
             getFunc = function() return SF.settings.showResearchNotifications end,
             setFunc = function(value) SF.settings.showResearchNotifications = value end,
+            disabled = IsAutoResearchProtectionDisabled,
             default = defaults.showResearchNotifications,
         },
         {
@@ -1235,6 +1331,14 @@ local function RegisterSettingsMenu()
             setFunc = function(value) SF.settings.showResearchDetails = value end,
             disabled = IsAutoResearchDetailsDisabled,
             default = defaults.showResearchDetails,
+        },
+        {
+            type = "checkbox",
+            name = T("prioritizeResearchTraits"),
+            tooltip = T("prioritizeResearchTraitsTip"),
+            getFunc = function() return SF.settings.prioritizeResearchTraits end,
+            setFunc = function(value) SF.settings.prioritizeResearchTraits = value end,
+            default = defaults.prioritizeResearchTraits,
         },
         {
             type = "checkbox",
@@ -1362,6 +1466,7 @@ local function OnAddonLoaded(_, addonName)
         if argument == "status" or argument == "" then
             Print(string.format(
                 T("status"),
+                tostring(SF.settings.protectMassDeconstructor),
                 tostring(SF.settings.protectMythic),
                 tostring(SF.settings.protectLegendary),
                 tostring(SF.settings.protectMonsterSets),
@@ -1369,7 +1474,10 @@ local function OnAddonLoaded(_, addonName)
                 tostring(SF.settings.protectRecommendedU50Sets),
                 tostring(SF.settings.protectLegacyMetaSets),
                 tostring(SF.hookInstalled == true),
-                tostring(SF.settings.protectPAWorkerResearch or SF.settings.prioritizeResearchTraits),
+                tostring(SF.settings.showSummary),
+                tostring(SF.settings.showDeconstructionDetails),
+                tostring(SF.settings.protectPAWorkerResearch),
+                tostring(SF.settings.prioritizeResearchTraits),
                 tostring(SF.paWorkerHookInstalled == true),
                 tostring(SF.settings.showResearchNotifications),
                 tostring(SF.settings.showResearchDetails),

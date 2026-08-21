@@ -1,8 +1,8 @@
 ## Title: Mass Deconstructor Safe Filter
 ## Description: Protects special items from Mass Deconstructor and PersonalAssistant Worker auto-research.
 ## Author: Codex for @FeralSwipe
-## Version: 1.6.0
-## AddOnVersion: 10600
+## Version: 1.7.0
+## AddOnVersion: 10700
 ## APIVersion: 101050 101051
 ## SavedVariables: MassDeconstructorSafeFilterSavedVars
 ## DependsOn: MassDeconstructor LibSets
