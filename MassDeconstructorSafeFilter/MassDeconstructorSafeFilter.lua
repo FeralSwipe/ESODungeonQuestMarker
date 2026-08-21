@@ -3,7 +3,7 @@ MDSafeFilter = MDSafeFilter or {}
 local SF = MDSafeFilter
 SF.name = "MassDeconstructorSafeFilter"
 SF.displayName = "Mass Deconstructor Safe Filter"
-SF.version = "1.5.2"
+SF.version = "1.6.0"
 
 local SET_TYPE_ARENA = LIBSETS_SETTYPE_ARENA or 1
 local SET_TYPE_MONSTER = LIBSETS_SETTYPE_MONSTER or 8
@@ -263,6 +263,8 @@ local defaults = {
     protectResearchCurrentMetaSets = true,
     protectResearchLegacyMetaSets = true,
     prioritizeResearchTraits = true,
+    showResearchNotifications = true,
+    showResearchDetails = false,
     showSummary = true,
 }
 
@@ -307,12 +309,30 @@ local translations = {
         protectResearchLegacyMetaTip = "Do not let PAWorker auto-research items from the legacy meta set collection.",
         prioritizeResearchTraits = "Prioritize popular traits",
         prioritizeResearchTraitsTip = "Let PAWorker choose commonly used PvE/PvP traits first, useful traits second, and all remaining traits last.",
+        showResearchNotifications = "Show PAWorker exclusion notifications",
+        showResearchNotificationsTip = "Show one summary after PAWorker finishes an automatic trait-research pass and protected items were skipped.",
+        showResearchDetails = "Show detailed skipped-item list",
+        showResearchDetailsTip = "After the summary, list every skipped item with its protection reason and set name when available.",
+        researchSummary = "PAWorker excluded %d item(s): tradeable BoP %d, bank %d, transmuted %d, crafted %d, reconstructed %d, legendary %d, mythic %d, monster sets %d, arena weapons %d, current meta %d, legacy meta %d.",
+        researchDetail = "Skipped: %s — %s",
+        researchDetailSet = "Skipped: %s — %s (set: %s)",
+        researchReasonBoP = "tradeable Bind-on-Pickup",
+        researchReasonBank = "bank item",
+        researchReasonRetraited = "trait changed at a Transmute Station",
+        researchReasonCrafted = "crafted item",
+        researchReasonReconstructed = "reconstructed item",
+        researchReasonLegendary = "legendary quality",
+        researchReasonMythic = "mythic quality",
+        researchReasonMonster = "monster set",
+        researchReasonArena = "arena weapon",
+        researchReasonCurrentMeta = "current meta set",
+        researchReasonLegacyMeta = "legacy meta set",
         showSummary = "Show exclusion summary in chat",
         hookMissing = "Mass Deconstructor was not found; protection hook was not installed.",
         summary = "Excluded %d item(s): mythic %d, legendary %d, monster sets %d, arena weapons %d, current meta %d, legacy meta %d.",
         deconstructError = "Mass Deconstructor error: ",
         listError = "Mass Deconstructor list error: ",
-        status = "mythic=%s, legendary=%s, monster=%s, arena=%s, current=%s, legacy=%s, deconstruct-hook=%s, auto-research=%s, PAWorker-hook=%s, language=%s",
+        status = "mythic=%s, legendary=%s, monster=%s, arena=%s, current=%s, legacy=%s, deconstruct-hook=%s, auto-research=%s, PAWorker-hook=%s, notifications=%s, details=%s, language=%s",
     },
     de = {
         description = "Zusätzliche Schutzausnahmen nur für Mass Deconstructor. Manuelles Zerlegen und Gegenstandssperren werden nicht verändert.",
@@ -396,12 +416,30 @@ local translations = {
         protectResearchLegacyMetaTip = "Не позволять PAWorker автоматически изучать предметы из коллекции устаревших метовых сетов.",
         prioritizeResearchTraits = "Сначала изучать востребованные трейты",
         prioritizeResearchTraitsTip = "PAWorker сначала выберет популярные PvE/PvP-трейты, затем полезные и только потом все оставшиеся.",
+        showResearchNotifications = "Показывать уведомления PAWorker",
+        showResearchNotificationsTip = "Показывать один итог после завершения серии автоматического изучения, если фильтр пропустил защищённые предметы.",
+        showResearchDetails = "Подробный список пропущенных предметов",
+        showResearchDetailsTip = "После итога перечислять каждый пропущенный предмет, причину защиты и название сета, если оно доступно.",
+        researchSummary = "PAWorker исключил предметов: %d. Обмениваемые BoP: %d, банк: %d, изменённый трейт: %d, крафт: %d, воссозданные: %d, легендарные: %d, мифические: %d, монстр-сеты: %d, оружие арен: %d, актуальная мета: %d, устаревшая мета: %d.",
+        researchDetail = "Пропущено: %s — %s",
+        researchDetailSet = "Пропущено: %s — %s (сет: %s)",
+        researchReasonBoP = "BoP-предмет доступен для обмена",
+        researchReasonBank = "предмет находится в банке",
+        researchReasonRetraited = "трейт изменён на станции трансмутации",
+        researchReasonCrafted = "крафтовый предмет",
+        researchReasonReconstructed = "воссозданный предмет",
+        researchReasonLegendary = "легендарное качество",
+        researchReasonMythic = "мифическое качество",
+        researchReasonMonster = "монстр-сет",
+        researchReasonArena = "оружие арены",
+        researchReasonCurrentMeta = "актуальный метовый сет",
+        researchReasonLegacyMeta = "устаревший метовый сет",
         showSummary = "Показывать итог исключений в чате",
         hookMissing = "Mass Deconstructor не найден; защитный перехватчик не установлен.",
         summary = "Исключено предметов: %d. Мифические: %d, легендарные: %d, монстр-сеты: %d, оружие арен: %d, актуальная мета: %d, устаревшая мета: %d.",
         deconstructError = "Ошибка Mass Deconstructor: ",
         listError = "Ошибка списка Mass Deconstructor: ",
-        status = "мифические=%s, легендарные=%s, монстр-сеты=%s, арены=%s, актуальные=%s, устаревшие=%s, перехват-разбора=%s, автоизучение=%s, перехват-PAWorker=%s, язык=%s",
+        status = "мифические=%s, легендарные=%s, монстр-сеты=%s, арены=%s, актуальные=%s, устаревшие=%s, перехват-разбора=%s, автоизучение=%s, перехват-PAWorker=%s, уведомления=%s, подробно=%s, язык=%s",
     },
     es = {
         description = "Exclusiones de seguridad adicionales aplicadas solo a Mass Deconstructor. El desguace manual y los bloqueos de objetos no cambian.",
@@ -630,6 +668,103 @@ local function GetAutoResearchCacheKey(bagId, slotIndex)
     return tostring(bagId) .. ":" .. tostring(slotIndex) .. ":" .. tostring(GetItemLink(bagId, slotIndex, LINK_STYLE_DEFAULT))
 end
 
+local researchReasonTranslationKeys = {
+    researchBoPTradeable = "researchReasonBoP",
+    researchBank = "researchReasonBank",
+    researchRetraited = "researchReasonRetraited",
+    researchCrafted = "researchReasonCrafted",
+    researchReconstructed = "researchReasonReconstructed",
+    researchLegendary = "researchReasonLegendary",
+    researchMythic = "researchReasonMythic",
+    researchMonster = "researchReasonMonster",
+    researchArena = "researchReasonArena",
+    researchCurrentMeta = "researchReasonCurrentMeta",
+    researchLegacyMeta = "researchReasonLegacyMeta",
+}
+
+local function RecordAutoResearchExcluded(state, bagId, slotIndex, reason)
+    if not SF.settings.showResearchNotifications or reason == nil then
+        return
+    end
+
+    state.researchExcluded = state.researchExcluded or {
+        total = 0,
+        counts = {},
+        entries = {},
+        seen = {},
+    }
+
+    local excluded = state.researchExcluded
+    local seenKey = tostring(bagId) .. ":" .. tostring(slotIndex)
+    if excluded.seen[seenKey] then
+        return
+    end
+    excluded.seen[seenKey] = true
+
+    local itemLink = GetItemLink(bagId, slotIndex, LINK_STYLE_BRACKETS)
+    if itemLink == nil or itemLink == "" then
+        return
+    end
+
+    local setName = nil
+    if SF.settings.showResearchDetails and GetItemLinkSetInfo ~= nil then
+        local isSet, localizedSetName = GetItemLinkSetInfo(itemLink, false)
+        if isSet and localizedSetName ~= nil and localizedSetName ~= "" then
+            setName = localizedSetName
+        end
+    end
+
+    excluded.total = excluded.total + 1
+    excluded.counts[reason] = (excluded.counts[reason] or 0) + 1
+    table.insert(excluded.entries, {
+        itemLink = itemLink,
+        reason = reason,
+        setName = setName,
+    })
+end
+
+local function ShowAutoResearchExcluded(state)
+    if state.researchNotificationShown or not SF.settings.showResearchNotifications then
+        return
+    end
+    state.researchNotificationShown = true
+
+    local excluded = state.researchExcluded
+    if excluded == nil or excluded.total == 0 then
+        return
+    end
+
+    local counts = excluded.counts
+    Print(string.format(
+        T("researchSummary"),
+        excluded.total,
+        counts.researchBoPTradeable or 0,
+        counts.researchBank or 0,
+        counts.researchRetraited or 0,
+        counts.researchCrafted or 0,
+        counts.researchReconstructed or 0,
+        counts.researchLegendary or 0,
+        counts.researchMythic or 0,
+        counts.researchMonster or 0,
+        counts.researchArena or 0,
+        counts.researchCurrentMeta or 0,
+        counts.researchLegacyMeta or 0
+    ))
+
+    if not SF.settings.showResearchDetails then
+        return
+    end
+
+    for _, entry in ipairs(excluded.entries) do
+        local reason = T(researchReasonTranslationKeys[entry.reason] or entry.reason)
+        if entry.setName ~= nil then
+            Print(string.format(T("researchDetailSet"), entry.itemLink, reason, entry.setName))
+        else
+            Print(string.format(T("researchDetail"), entry.itemLink, reason))
+        end
+    end
+end
+
 -- One early-exit path for all PAWorker auto-research exclusions. Results are
 -- cached by the item's unique id for the whole recursive auto-research run.
 function SF.ShouldProtectAutoResearchItem(bagId, slotIndex, traitInformation, cache)
@@ -733,13 +868,14 @@ local function CallInPAWorkerResearchContext(state, callback, ...)
             return traitInformation
         end
 
-        local protected = SF.ShouldProtectAutoResearchItem(
+        local protected, reason = SF.ShouldProtectAutoResearchItem(
             bagId,
             slotIndex,
             traitInformation,
             state.protectionCache
         )
         if protected then
+            RecordAutoResearchExcluded(state, bagId, slotIndex, reason)
             return ITEM_TRAIT_INFORMATION_NONE or 0
         end
 
@@ -759,7 +895,7 @@ local function CallInPAWorkerResearchContext(state, callback, ...)
             return nil
         end
 
-        if delayMilliseconds == 500 and SF.settings.prioritizeResearchTraits then
+        if delayMilliseconds == 500 then
             return originalZoCallLater(function()
                 return RunPAWorkerResearchPasses(state, delayedCallback)
             end, delayMilliseconds)
@@ -793,7 +929,11 @@ RunPAWorkerResearchPasses = function(state, callback, ...)
         if not results[1] then
             error(results[2])
         end
-        if state.selectionScheduled or priority == lastPriority then
+        if state.selectionScheduled then
+            return unpack(results, 2)
+        end
+        if priority == lastPriority then
+            ShowAutoResearchExcluded(state)
             return unpack(results, 2)
         end
     end
@@ -991,6 +1131,10 @@ local function RegisterSettingsMenu()
         return not SF.settings.protectPAWorkerResearch
     end
 
+    local function IsAutoResearchDetailsDisabled()
+        return not SF.settings.showResearchNotifications
+    end
+
     local options = {
         {
             type = "description",
@@ -1074,6 +1218,23 @@ local function RegisterSettingsMenu()
             getFunc = function() return SF.settings.prioritizeResearchTraits end,
             setFunc = function(value) SF.settings.prioritizeResearchTraits = value end,
             default = defaults.prioritizeResearchTraits,
+        },
+        {
+            type = "checkbox",
+            name = T("showResearchNotifications"),
+            tooltip = T("showResearchNotificationsTip"),
+            getFunc = function() return SF.settings.showResearchNotifications end,
+            setFunc = function(value) SF.settings.showResearchNotifications = value end,
+            default = defaults.showResearchNotifications,
+        },
+        {
+            type = "checkbox",
+            name = T("showResearchDetails"),
+            tooltip = T("showResearchDetailsTip"),
+            getFunc = function() return SF.settings.showResearchDetails end,
+            setFunc = function(value) SF.settings.showResearchDetails = value end,
+            disabled = IsAutoResearchDetailsDisabled,
+            default = defaults.showResearchDetails,
         },
         {
             type = "checkbox",
@@ -1210,6 +1371,8 @@ local function OnAddonLoaded(_, addonName)
                 tostring(SF.hookInstalled == true),
                 tostring(SF.settings.protectPAWorkerResearch or SF.settings.prioritizeResearchTraits),
                 tostring(SF.paWorkerHookInstalled == true),
+                tostring(SF.settings.showResearchNotifications),
+                tostring(SF.settings.showResearchDetails),
                 languageCode
             ))
         end
